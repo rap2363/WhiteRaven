@@ -18,36 +18,18 @@ class CPUMemory extends MemoryMap {
     }
 }
 
-class ProgramCounter extends Register {
-    ProgramCounter() {
-        this.registerMemory = new byte[2];
-    }
-}
-
-class StackPointer extends SingleByteRegister {
-}
-
-class Accumulator extends SingleByteRegister {
-}
-
-class RegisterX extends SingleByteRegister {
-}
-
-class RegisterY extends SingleByteRegister {
-}
-
-class ProcessorStatus extends SingleByteRegister {
+class ProcessorStatus extends EightBitRegister {
 
     private boolean getStatusBitAt(int position) {
-        return ((this.registerMemory[0] >> position) & 1) == 0x1;
+        return ((this.register >> position) & 1) == 0x1;
     }
 
     void setCarryFlag() {
-        this.registerMemory[0] = (byte) (this.registerMemory[0] | (0x01 << 0));
+        this.register = (byte) (this.register | (0x01 << 0));
     }
 
     void clearCarryFlag() {
-        this.registerMemory[0] = (byte) (this.registerMemory[0] & ~(0x01 << 0));
+        this.register = (byte) (this.register & ~(0x01 << 0));
     }
 
     boolean carryFlag() {
@@ -55,11 +37,11 @@ class ProcessorStatus extends SingleByteRegister {
     }
 
     void setZeroFlag() {
-        this.registerMemory[0] = (byte) (this.registerMemory[0] | (0x01 << 1));
+        this.register = (byte) (this.register | (0x01 << 1));
     }
 
     void clearZeroFlag() {
-        this.registerMemory[0] = (byte) (this.registerMemory[0] & ~(0x01 << 1));
+        this.register = (byte) (this.register & ~(0x01 << 1));
     }
 
     boolean zeroFlag() {
@@ -67,11 +49,11 @@ class ProcessorStatus extends SingleByteRegister {
     }
 
     void setInterruptDisableFlag() {
-        this.registerMemory[0] = (byte) (this.registerMemory[0] | (0x01 << 2));
+        this.register = (byte) (this.register | (0x01 << 2));
     }
 
     void clearInterruptDisableFlag() {
-        this.registerMemory[0] = (byte) (this.registerMemory[0] & ~(0x01 << 2));
+        this.register = (byte) (this.register & ~(0x01 << 2));
     }
 
     boolean interruptDisableFlag() {
@@ -79,11 +61,11 @@ class ProcessorStatus extends SingleByteRegister {
     }
 
     void setDecimalModeFlag() {
-        this.registerMemory[0] = (byte) (this.registerMemory[0] | (0x01 << 3));
+        this.register = (byte) (this.register | (0x01 << 3));
     }
 
     void clearDecimalModeFlag() {
-        this.registerMemory[0] = (byte) (this.registerMemory[0] & ~(0x01 << 3));
+        this.register = (byte) (this.register & ~(0x01 << 3));
     }
 
     boolean decimalModeFlag() {
@@ -91,11 +73,11 @@ class ProcessorStatus extends SingleByteRegister {
     }
 
     void setBreakFlag() {
-        this.registerMemory[0] = (byte) (this.registerMemory[0] | (0x01 << 4));
+        this.register = (byte) (this.register | (0x01 << 4));
     }
 
     void clearBreakFlag() {
-        this.registerMemory[0] = (byte) (this.registerMemory[0] & ~(0x01 << 4));
+        this.register = (byte) (this.register & ~(0x01 << 4));
     }
 
     boolean breakFlag() {
@@ -103,11 +85,11 @@ class ProcessorStatus extends SingleByteRegister {
     }
 
     void setOverflowFlag() {
-        this.registerMemory[0] = (byte) (this.registerMemory[0] | (0x01 << 6));
+        this.register = (byte) (this.register | (0x01 << 6));
     }
 
     void clearOverflowFlag() {
-        this.registerMemory[0] = (byte) (this.registerMemory[0] & ~(0x01 << 6));
+        this.register = (byte) (this.register & ~(0x01 << 6));
     }
 
     boolean overflowFlag() {
@@ -115,15 +97,20 @@ class ProcessorStatus extends SingleByteRegister {
     }
 
     void setNegativeFlag() {
-        this.registerMemory[0] = (byte) (this.registerMemory[0] | (0x01 << 7));
+        this.register = (byte) (this.register | (0x01 << 7));
     }
 
     void clearNegativeFlag() {
-        this.registerMemory[0] = (byte) (this.registerMemory[0] & ~(0x01 << 7));
+        this.register = (byte) (this.register & ~(0x01 << 7));
     }
 
     boolean negativeFlag() {
         return getStatusBitAt(7);
+    }
+
+    public String toString() {
+        String s = String.format("%8s", Integer.toBinaryString(this.register)).replace(" ", "0");
+        return s.substring(s.length() - 8, s.length());
     }
 }
 
@@ -134,5 +121,38 @@ class ProcessorStatus extends SingleByteRegister {
  *
  */
 public class CPU {
+    public MemoryMap cpuMemory;
+    public SixteenBitRegister PC;
+    public EightBitRegister A;
+    public EightBitRegister X;
+    public EightBitRegister Y;
+    public ProcessorStatus P;
 
+    CPU() {
+        this.cpuMemory = new CPUMemory();
+        this.PC = new SixteenBitRegister();
+        this.A = new EightBitRegister();
+        this.X = new EightBitRegister();
+        this.Y = new EightBitRegister();
+        this.P = new ProcessorStatus();
+    }
+
+    public String state() {
+        String state = "";
+        state += "PC: " + this.PC + "\n";
+        state += "A:  " + this.A + "\n";
+        state += "X:  " + this.X + "\n";
+        state += "Y:  " + this.Y + "\n";
+        state += "P:  NV-BDIZC\n";
+        state += "    " + this.P + "\n";
+
+        return state;
+    }
+
+    public static void main(String[] args) {
+        CPU cpu = new CPU();
+        cpu.PC.write(0xfe31);
+        cpu.X.write(0xfe);
+        System.out.println(cpu.state());
+    }
 }
