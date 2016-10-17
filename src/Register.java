@@ -7,7 +7,7 @@
  *
  */
 public abstract class Register {
-    private byte[] registerMemory;
+    protected byte[] registerMemory;
 
     /**
      * Read the bytes from the register
