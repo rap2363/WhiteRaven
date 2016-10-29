@@ -1,3 +1,4 @@
+package snes;
 import java.util.Arrays;
 
 /**

@@ -1,3 +1,4 @@
+package snes;
 
 public class SixteenBitRegister {
     protected byte first;
@@ -10,7 +11,7 @@ public class SixteenBitRegister {
      */
     public void write(int value) {
         this.first = (byte) (value >> 8);
-        this.second = (byte) (value);
+        this.second = (byte) (value & 0xFF);
     }
 
     /**
@@ -22,6 +23,26 @@ public class SixteenBitRegister {
     public void write(byte first, byte second) {
         this.first = first;
         this.second = second;
+    }
+
+    /**
+     * Increment the register
+     */
+    public void increment() {
+        this.second++;
+        if (this.second == 0) {
+            this.first++;
+        }
+    }
+
+    /**
+     * Decrement the register
+     */
+    public void decrement() {
+        this.second--;
+        if (this.second == -1) {
+            this.first--;
+        }
     }
 
     /**
