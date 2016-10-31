@@ -1,5 +1,9 @@
 package snes;
 
+import operations.AddWithCarry;
+import operations.Instruction;
+import operations.Operation;
+
 class CPUMemory extends MemoryMap {
     private static final int NES_CPU_MEMORY_SIZE = 0x10000;
 
@@ -63,16 +67,44 @@ public class CPU {
         return this.memory.read(this.PC.first, 2);
     }
 
+    public byte readOpcode() {
+        return this.memory.read(this.PC.first);
+    }
+
+    /**
+     * Returns true if b1 and b2 added together would result in setting the
+     * overflow flag
+     * 
+     * @param b1
+     * @param b2
+     * @return
+     */
+    public boolean getOverflowFlag(byte b1, byte b2, boolean carry) {
+        byte s = (byte) (b1 + b2);
+        if (carry) {
+            s += (byte) 1;
+        }
+        System.out.println(b1 + " + " + b2 + " = " + s);
+        if (b1 >= 0 && b2 >= 0) {
+            return s < 0;
+        } else if (b1 <= 0 && b2 <= 0) {
+            return s > 0;
+        }
+        return false;
+    }
+
     public static void main(String[] args) {
         CPU cpu = new CPU();
         cpu.PC.write(0xffff);
         cpu.PC.increment();
         cpu.PC.decrement();
         cpu.X.write(0xfd);
-        cpu.P.decrement();
-        boolean overflow = cpu.X.addByte((byte) 0x0004);
-        System.out.println(overflow);
+        cpu.P.increment();
+        cpu.A.write(0x7F);
         System.out.println(cpu.state());
-
+        Instruction tmp = new AddWithCarry();
+        Operation op = tmp.getOperations().get(0);
+        op.execute(cpu);
+        System.out.println(cpu.state());
     }
 }

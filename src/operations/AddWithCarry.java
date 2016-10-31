@@ -10,18 +10,29 @@ abstract class AddWithCarryOperationBase extends Operation {
         // TODO Auto-generated constructor stub
     }
 
-    void setProcessorStatus(CPU cpu, boolean carryFlag, boolean overflowFlag, byte lastInstruction) {
+    void setProcessorStatus(CPU cpu, boolean carryFlag, boolean overflowFlag, byte lastInstructionInstruction) {
         if (carryFlag) {
             cpu.P.setCarryFlag();
+        } else {
+            cpu.P.clearCarryFlag();
         }
+
         if (cpu.A.register == 0) {
             cpu.P.setZeroFlag();
+        } else {
+            cpu.P.clearZeroFlag();
         }
+
         if (overflowFlag) {
             cpu.P.setOverflowFlag();
+        } else {
+            cpu.P.clearOverflowFlag();
         }
-        if (lastInstruction < 0) {
+
+        if (lastInstructionInstruction < 0) {
             cpu.P.setNegativeFlag();
+        } else {
+            cpu.P.clearNegativeFlag();
         }
     }
 }
@@ -33,15 +44,16 @@ class AddWithCarryImmediate extends AddWithCarryOperationBase {
     }
 
     @Override
-    void execute(CPU cpu) {
+    public void execute(CPU cpu) {
         byte[] bytes = cpu.readPC();
+        byte value = bytes[1];
 
-        boolean overflowFlag = (cpu.A.register & bytes[1]) >> 7;
-        boolean carryFlag = cpu.A.addByte(bytes[1]);
+        boolean carryFlag = cpu.A.addByte(value);
+        boolean overflowFlag = cpu.getOverflowFlag(cpu.A.register, value, carryFlag);
 
         cpu.cycles += 2;
 
-        setProcessorStatus(cpu, carryFlag, false, cpu.A.register);
+        setProcessorStatus(cpu, carryFlag, overflowFlag, cpu.A.register);
     }
 }
 
@@ -52,7 +64,7 @@ class AddWithCarryZeroPage extends AddWithCarryOperationBase {
     }
 
     @Override
-    void execute(CPU cpu) {
+    public void execute(CPU cpu) {
 
     }
 }
@@ -64,7 +76,7 @@ class AddWithCarryZeroPageX extends AddWithCarryOperationBase {
     }
 
     @Override
-    void execute(CPU cpu) {
+    public void execute(CPU cpu) {
 
     }
 }
@@ -76,7 +88,7 @@ class AddWithCarryAbsolute extends AddWithCarryOperationBase {
     }
 
     @Override
-    void execute(CPU cpu) {
+    public void execute(CPU cpu) {
 
     }
 }
@@ -88,7 +100,7 @@ class AddWithCarryAbsoluteX extends AddWithCarryOperationBase {
     }
 
     @Override
-    void execute(CPU cpu) {
+    public void execute(CPU cpu) {
 
     }
 }
@@ -100,7 +112,7 @@ class AddWithCarryAbsoluteY extends AddWithCarryOperationBase {
     }
 
     @Override
-    void execute(CPU cpu) {
+    public void execute(CPU cpu) {
 
     }
 }
@@ -112,7 +124,7 @@ class AddWithCarryIndirectX extends AddWithCarryOperationBase {
     }
 
     @Override
-    void execute(CPU cpu) {
+    public void execute(CPU cpu) {
 
     }
 }
@@ -124,7 +136,7 @@ class AddWithCarryIndirectY extends AddWithCarryOperationBase {
     }
 
     @Override
-    void execute(CPU cpu) {
+    public void execute(CPU cpu) {
 
     }
 }
