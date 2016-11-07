@@ -63,12 +63,12 @@ public class CPU {
         return state;
     }
 
-    public byte[] readPC() {
-        return this.memory.read(this.PC.first, 2);
+    public byte[] readAtPC(int n) {
+        return this.memory.read(this.PC.read(), n);
     }
 
     public byte readOpcode() {
-        return this.memory.read(this.PC.first);
+        return this.memory.read(this.PC.read());
     }
 
     /**
@@ -84,7 +84,7 @@ public class CPU {
         if (carry) {
             s += (byte) 1;
         }
-        System.out.println(b1 + " + " + b2 + " = " + s);
+
         if (b1 >= 0 && b2 >= 0) {
             return s < 0;
         } else if (b1 <= 0 && b2 <= 0) {
@@ -95,12 +95,11 @@ public class CPU {
 
     public static void main(String[] args) {
         CPU cpu = new CPU();
-        cpu.PC.write(0xffff);
-        cpu.PC.increment();
-        cpu.PC.decrement();
+        cpu.PC.write(0xfff0);
+        cpu.memory.write(0xfff1, (byte) 30);
         cpu.X.write(0xfd);
         cpu.P.increment();
-        cpu.A.write(0x7F);
+        cpu.A.write(0x7e);
         System.out.println(cpu.state());
         Instruction tmp = new AddWithCarry();
         Operation op = tmp.getOperations().get(0);

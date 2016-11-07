@@ -1,37 +1,29 @@
 package snes;
 
-public class SixteenBitRegister {
-    protected byte first;
-    protected byte second;
+public class SixteenBitRegister implements Register {
+    private static final int MAX_SIXTEEN_BIT_VALUE = 0xFFFF;
+    protected int data;
 
-    /**
-     * Write out two bytes to our two-byte register from an integer
-     * 
-     * @param value
-     */
+    public SixteenBitRegister() {
+        this.data = 0;
+    }
+
+    @Override
+    public int read() {
+        return this.data >= 0 ? this.data : this.data + MAX_SIXTEEN_BIT_VALUE;
+    }
+
+    @Override
     public void write(int value) {
-        this.first = (byte) (value >> 8);
-        this.second = (byte) (value & 0xFF);
+        this.data = value & 0xFFFF;
     }
 
-    /**
-     * Write out two bytes to our two-byte register
-     * 
-     * @param first
-     * @param second
-     */
-    public void write(byte first, byte second) {
-        this.first = first;
-        this.second = second;
-    }
-
-    /**
-     * Increment the register
-     */
+    @Override
     public void increment() {
-        this.second++;
-        if (this.second == 0) {
-            this.first++;
+        if (this.data == MAX_SIXTEEN_BIT_VALUE) {
+            this.data = 0;
+        } else {
+            this.data++;
         }
     }
 
@@ -39,36 +31,14 @@ public class SixteenBitRegister {
      * Decrement the register
      */
     public void decrement() {
-        this.second--;
-        if (this.second == -1) {
-            this.first--;
+        if (this.data == 0) {
+            this.data = MAX_SIXTEEN_BIT_VALUE;
+        } else {
+            this.data--;
         }
     }
 
-    /**
-     * Read the bytes out from the register into an int
-     * 
-     * @return
-     */
-    public int readToInt() {
-        return (int) ((this.first << 8) + this.second);
-    }
-
-    /**
-     * Read the bytes out from the register
-     * 
-     * @return
-     */
-    public byte[] read() {
-        byte[] bytesToRead = new byte[2];
-
-        bytesToRead[0] = first;
-        bytesToRead[1] = second;
-
-        return bytesToRead;
-    }
-
     public String toString() {
-        return String.format("0x%02x%02x", this.first, this.second);
+        return String.format("0x%02x%02x", this.data >> 8, this.data & 0x00FF);
     }
 }

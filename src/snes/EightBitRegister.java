@@ -1,53 +1,47 @@
 package snes;
 
-public class EightBitRegister {
-    public byte register;
+public class EightBitRegister implements Register {
+    protected byte data;
+    protected static final int MAX_EIGHT_BIT_VALUE = 256;
 
-    /**
-     * Write out a byte to the register
-     * 
-     * @param value
-     */
-    public void write(byte value) {
-        this.register = value;
+    public EightBitRegister() {
+        this.data = 0;
     }
 
-    /**
-     * Write a byte to the register from an int
-     * 
-     * @param value
-     */
+    @Override
+    public int read() {
+        return this.data >= 0 ? this.data : this.data + MAX_EIGHT_BIT_VALUE;
+    }
+
+    @Override
     public void write(int value) {
-        this.register = (byte) value;
+        this.data = (byte) value;
     }
 
-    /**
-     * Increment the register
-     */
+    @Override
     public void increment() {
-        this.register++;
+        if (this.data == (byte) MAX_EIGHT_BIT_VALUE) {
+            this.data = 0;
+        } else {
+            this.data++;
+        }
     }
 
-    /**
-     * Decrement the register
-     */
+    @Override
     public void decrement() {
-        this.register--;
+        if (this.data == 0) {
+            this.data = (byte) MAX_EIGHT_BIT_VALUE;
+        } else {
+            this.data--;
+        }
     }
 
-    /**
-     * Add a byte's value to the register. Return true if overflow occurs.
-     * 
-     * @return
-     */
     public boolean addByte(byte b) {
-        System.out.println((int) this.register);
-        this.register += (int) b;
-        System.out.println(((int) this.register) + ", " + ((int) this.register - (int) b));
-        return (int) this.register < ((int) this.register - (int) b);
+        this.data += b;
+        return (int) this.data < ((int) this.data - (int) b);
     }
 
     public String toString() {
-        return String.format("0x%02x", this.register);
+        return String.format("0x%02x", this.data);
     }
 }

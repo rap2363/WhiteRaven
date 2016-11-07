@@ -17,7 +17,7 @@ abstract class AddWithCarryOperationBase extends Operation {
             cpu.P.clearCarryFlag();
         }
 
-        if (cpu.A.register == 0) {
+        if (cpu.A.read() == 0) {
             cpu.P.setZeroFlag();
         } else {
             cpu.P.clearZeroFlag();
@@ -45,15 +45,15 @@ class AddWithCarryImmediate extends AddWithCarryOperationBase {
 
     @Override
     public void execute(CPU cpu) {
-        byte[] bytes = cpu.readPC();
+        byte[] bytes = cpu.readAtPC(2);
         byte value = bytes[1];
 
         boolean carryFlag = cpu.A.addByte(value);
-        boolean overflowFlag = cpu.getOverflowFlag(cpu.A.register, value, carryFlag);
+        boolean overflowFlag = cpu.getOverflowFlag((byte) cpu.A.read(), value, carryFlag);
 
         cpu.cycles += 2;
 
-        setProcessorStatus(cpu, carryFlag, overflowFlag, cpu.A.register);
+        setProcessorStatus(cpu, carryFlag, overflowFlag, (byte) cpu.A.read());
     }
 }
 

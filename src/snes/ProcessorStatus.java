@@ -3,15 +3,15 @@ package snes;
 public class ProcessorStatus extends EightBitRegister {
 
     public boolean getStatusBitAt(int position) {
-        return ((this.register >> position) & 1) == 0x1;
+        return ((this.data >> position) & 1) == 0x1;
     }
 
     public void setCarryFlag() {
-        this.register = (byte) (this.register | (0x01 << 0));
+        this.data = (byte) (this.data | (0x01 << 0));
     }
 
     public void clearCarryFlag() {
-        this.register = (byte) (this.register & ~(0x01 << 0));
+        this.data = (byte) (this.data & ~(0x01 << 0));
     }
 
     public boolean carryFlag() {
@@ -19,11 +19,11 @@ public class ProcessorStatus extends EightBitRegister {
     }
 
     public void setZeroFlag() {
-        this.register = (byte) (this.register | (0x01 << 1));
+        this.data = (byte) (this.data | (0x01 << 1));
     }
 
     public void clearZeroFlag() {
-        this.register = (byte) (this.register & ~(0x01 << 1));
+        this.data = (byte) (this.data & ~(0x01 << 1));
     }
 
     public boolean zeroFlag() {
@@ -31,11 +31,11 @@ public class ProcessorStatus extends EightBitRegister {
     }
 
     public void setInterruptDisableFlag() {
-        this.register = (byte) (this.register | (0x01 << 2));
+        this.data = (byte) (this.data | (0x01 << 2));
     }
 
     public void clearInterruptDisableFlag() {
-        this.register = (byte) (this.register & ~(0x01 << 2));
+        this.data = (byte) (this.data & ~(0x01 << 2));
     }
 
     public boolean interruptDisableFlag() {
@@ -43,11 +43,11 @@ public class ProcessorStatus extends EightBitRegister {
     }
 
     public void setDecimalModeFlag() {
-        this.register = (byte) (this.register | (0x01 << 3));
+        this.data = (byte) (this.data | (0x01 << 3));
     }
 
     public void clearDecimalModeFlag() {
-        this.register = (byte) (this.register & ~(0x01 << 3));
+        this.data = (byte) (this.data & ~(0x01 << 3));
     }
 
     public boolean decimalModeFlag() {
@@ -55,11 +55,11 @@ public class ProcessorStatus extends EightBitRegister {
     }
 
     public void setBreakFlag() {
-        this.register = (byte) (this.register | (0x01 << 4));
+        this.data = (byte) (this.data | (0x01 << 4));
     }
 
     public void clearBreakFlag() {
-        this.register = (byte) (this.register & ~(0x01 << 4));
+        this.data = (byte) (this.data & ~(0x01 << 4));
     }
 
     public boolean breakFlag() {
@@ -67,11 +67,11 @@ public class ProcessorStatus extends EightBitRegister {
     }
 
     public void setOverflowFlag() {
-        this.register = (byte) (this.register | (0x01 << 6));
+        this.data = (byte) (this.data | (0x01 << 6));
     }
 
     public void clearOverflowFlag() {
-        this.register = (byte) (this.register & ~(0x01 << 6));
+        this.data = (byte) (this.data & ~(0x01 << 6));
     }
 
     public boolean overflowFlag() {
@@ -79,19 +79,20 @@ public class ProcessorStatus extends EightBitRegister {
     }
 
     public void setNegativeFlag() {
-        this.register = (byte) (this.register | (0x01 << 7));
+        this.data = (byte) (this.data | (0x01 << 7));
     }
 
     public void clearNegativeFlag() {
-        this.register = (byte) (this.register & ~(0x01 << 7));
+        this.data = (byte) (this.data & ~(0x01 << 7));
     }
 
     public boolean negativeFlag() {
         return getStatusBitAt(7);
     }
 
+    @Override
     public String toString() {
-        String s = String.format("%8s", Integer.toBinaryString(this.register)).replace(" ", "0");
+        String s = String.format("%8s", Integer.toBinaryString(this.data)).replace(" ", "0");
         return s.substring(s.length() - 8, s.length());
     }
 }
