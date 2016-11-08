@@ -1,5 +1,9 @@
 package snes;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+
 import operations.AddWithCarry;
 import operations.Instruction;
 import operations.Operation;
@@ -32,6 +36,7 @@ class CPUMemory extends MemoryMap {
 public class CPU {
     public MemoryMap memory;
     public SixteenBitRegister PC;
+    public EightBitRegister SP;
     public EightBitRegister A;
     public EightBitRegister X;
     public EightBitRegister Y;
@@ -39,14 +44,26 @@ public class CPU {
 
     public long cycles;
 
+    private HashMap<Byte, Operation> operationMap;
+
     CPU() {
         this.memory = new CPUMemory();
         this.PC = new SixteenBitRegister();
+        this.SP = new EightBitRegister();
         this.A = new EightBitRegister();
         this.X = new EightBitRegister();
         this.Y = new EightBitRegister();
         this.P = new ProcessorStatus();
         this.cycles = 0;
+
+        operationMap = new HashMap<Byte, Operation>();
+
+        List<Instruction> instructions = Arrays.asList(new AddWithCarry());
+        for (Instruction instruction : instructions) {
+            for (Operation operation : instruction.getOperations()) {
+                operationMap.put(operation.opcode, operation);
+            }
+        }
     }
 
     public String state() {
@@ -54,6 +71,7 @@ public class CPU {
 
         state += "Cycle Number: " + this.cycles + "\n";
         state += "PC: " + this.PC + "\n";
+        state += "SP: " + this.SP + "\n";
         state += "A:  " + this.A + "\n";
         state += "X:  " + this.X + "\n";
         state += "Y:  " + this.Y + "\n";
@@ -72,38 +90,44 @@ public class CPU {
     }
 
     /**
-     * Returns true if b1 and b2 added together would result in setting the
-     * overflow flag
+     * Simulates one step in the computing cycle. Reads the byte at the PC for
+     * the opcode and carries through with execution. Throws an exception if we
+     * do not support the opcode fetched from the PC.
      * 
-     * @param b1
-     * @param b2
-     * @return
+     * @throws UnimplementedOpcode
      */
-    public boolean getOverflowFlag(byte b1, byte b2, boolean carry) {
-        byte s = (byte) (b1 + b2);
-        if (carry) {
-            s += (byte) 1;
+    public void fetchAndExecute() throws UnimplementedOpcode {
+        byte opcode = this.memory.read(this.PC.read());
+        Operation op = this.operationMap.get(opcode);
+        if (op == null) {
+            throw new UnimplementedOpcode("Unimplemented instruction: " + opcode);
         }
-
-        if (b1 >= 0 && b2 >= 0) {
-            return s < 0;
-        } else if (b1 <= 0 && b2 <= 0) {
-            return s > 0;
-        }
-        return false;
+        op.execute(this);
     }
 
     public static void main(String[] args) {
         CPU cpu = new CPU();
-        cpu.PC.write(0xfff0);
-        cpu.memory.write(0xfff1, (byte) 30);
-        cpu.X.write(0xfd);
-        cpu.P.increment();
-        cpu.A.write(0x7e);
-        System.out.println(cpu.state());
-        Instruction tmp = new AddWithCarry();
-        Operation op = tmp.getOperations().get(0);
-        op.execute(cpu);
-        System.out.println(cpu.state());
+        cpu.P.write(0x30);
+        cpu.PC.write(0x0603);
+        cpu.memory.write(0x0603, (byte) 0x69);
+        cpu.memory.write(0x0604, (byte) 0x32);
+        cpu.memory.write(0x0605, (byte) 0x69);
+        cpu.memory.write(0x0606, (byte) 0x01);
+        cpu.memory.write(0x0607, (byte) 0x69);
+        cpu.memory.write(0x0608, (byte) 0x01);
+
+        cpu.A.write(0xdf);
+        cpu.P.setCarryFlag();
+
+        try {
+            cpu.fetchAndExecute();
+            System.out.println(cpu.state());
+            cpu.fetchAndExecute();
+            System.out.println(cpu.state());
+            cpu.fetchAndExecute();
+            System.out.println(cpu.state());
+        } catch (UnimplementedOpcode e) {
+            System.out.println(e.getMessage());
+        }
     }
 }

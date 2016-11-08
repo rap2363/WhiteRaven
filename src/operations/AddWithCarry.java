@@ -7,10 +7,19 @@ abstract class AddWithCarryOperationBase extends Operation {
     AddWithCarryOperationBase(AddressingMode addressingMode, byte opcode, int numBytes, int cycles,
             boolean pageCrossedCycle) {
         super(addressingMode, opcode, numBytes, cycles, pageCrossedCycle);
-        // TODO Auto-generated constructor stub
     }
 
-    void setProcessorStatus(CPU cpu, boolean carryFlag, boolean overflowFlag, byte lastInstructionInstruction) {
+    void baseExecute(CPU cpu, byte value) {
+        boolean carryFlag = cpu.A.addByte(value, cpu.P.carryFlag());
+        boolean overflowFlag = Utilities.getOverflowFlag((byte) cpu.A.read(), value, carryFlag);
+
+        // Set the processor status flags
+        if (overflowFlag) {
+            cpu.P.setOverflowFlag();
+        } else {
+            cpu.P.clearOverflowFlag();
+        }
+
         if (carryFlag) {
             cpu.P.setCarryFlag();
         } else {
@@ -23,13 +32,7 @@ abstract class AddWithCarryOperationBase extends Operation {
             cpu.P.clearZeroFlag();
         }
 
-        if (overflowFlag) {
-            cpu.P.setOverflowFlag();
-        } else {
-            cpu.P.clearOverflowFlag();
-        }
-
-        if (lastInstructionInstruction < 0) {
+        if (cpu.A.signBit()) {
             cpu.P.setNegativeFlag();
         } else {
             cpu.P.clearNegativeFlag();
@@ -45,15 +48,14 @@ class AddWithCarryImmediate extends AddWithCarryOperationBase {
 
     @Override
     public void execute(CPU cpu) {
-        byte[] bytes = cpu.readAtPC(2);
+        final int numBytes = 2;
+        byte[] bytes = cpu.readAtPC(numBytes);
         byte value = bytes[1];
 
-        boolean carryFlag = cpu.A.addByte(value);
-        boolean overflowFlag = cpu.getOverflowFlag((byte) cpu.A.read(), value, carryFlag);
+        baseExecute(cpu, value);
 
+        cpu.PC.incrementBy(numBytes);
         cpu.cycles += 2;
-
-        setProcessorStatus(cpu, carryFlag, overflowFlag, (byte) cpu.A.read());
     }
 }
 
@@ -65,7 +67,14 @@ class AddWithCarryZeroPage extends AddWithCarryOperationBase {
 
     @Override
     public void execute(CPU cpu) {
+        final int numBytes = 2;
+        byte[] bytes = cpu.readAtPC(numBytes);
+        byte value = cpu.memory.read(Utilities.toUnsignedValue(bytes[1]));
 
+        baseExecute(cpu, value);
+
+        cpu.PC.incrementBy(numBytes);
+        cpu.cycles += 3;
     }
 }
 
@@ -77,7 +86,14 @@ class AddWithCarryZeroPageX extends AddWithCarryOperationBase {
 
     @Override
     public void execute(CPU cpu) {
+        final int numBytes = 2;
+        byte[] bytes = cpu.readAtPC(numBytes);
+        byte value = cpu.memory.read(Utilities.toUnsignedValue((byte) (bytes[1] + cpu.X.readAsByte())));
 
+        baseExecute(cpu, value);
+
+        cpu.PC.incrementBy(numBytes);
+        cpu.cycles += 4;
     }
 }
 
@@ -89,7 +105,14 @@ class AddWithCarryAbsolute extends AddWithCarryOperationBase {
 
     @Override
     public void execute(CPU cpu) {
+        final int numBytes = 3;
+        byte[] bytes = cpu.readAtPC(numBytes);
+        byte value = cpu.memory.read(Utilities.toUnsignedValue(bytes[1], bytes[2]));
 
+        baseExecute(cpu, value);
+
+        cpu.PC.incrementBy(numBytes);
+        cpu.cycles += 4;
     }
 }
 
@@ -101,7 +124,18 @@ class AddWithCarryAbsoluteX extends AddWithCarryOperationBase {
 
     @Override
     public void execute(CPU cpu) {
+        final int numBytes = 3;
+        byte[] bytes = cpu.readAtPC(numBytes);
+        byte value = cpu.memory.read(
+                Utilities.addByteToUnsignedInt(Utilities.toUnsignedValue(bytes[1], bytes[2]), cpu.X.readAsByte()));
 
+        baseExecute(cpu, value);
+
+        cpu.PC.incrementBy(numBytes);
+        cpu.cycles += 4;
+        if (Utilities.getOverflowFlag(bytes[2], cpu.X.readAsByte(), false)) {
+            cpu.cycles += 1;
+        }
     }
 }
 
@@ -113,7 +147,18 @@ class AddWithCarryAbsoluteY extends AddWithCarryOperationBase {
 
     @Override
     public void execute(CPU cpu) {
+        final int numBytes = 3;
+        byte[] bytes = cpu.readAtPC(numBytes);
+        byte value = cpu.memory.read(
+                Utilities.addByteToUnsignedInt(Utilities.toUnsignedValue(bytes[1], bytes[2]), cpu.Y.readAsByte()));
 
+        baseExecute(cpu, value);
+
+        cpu.PC.incrementBy(numBytes);
+        cpu.cycles += 4;
+        if (Utilities.getOverflowFlag(bytes[2], cpu.Y.readAsByte(), false)) {
+            cpu.cycles += 1;
+        }
     }
 }
 

@@ -3,11 +3,11 @@ package operations;
 import snes.CPU;
 
 public abstract class Operation {
-    AddressingMode addressingMode;
-    byte opcode;
-    int numBytes;
-    int cycles;
-    boolean pageCrossedCycle;
+    public AddressingMode addressingMode;
+    public byte opcode;
+    public int numBytes;
+    public int cycles;
+    public boolean pageCrossedCycle;
 
     Operation(AddressingMode addressingMode, byte opcode, int numBytes, int cycles, boolean pageCrossedCycle) {
         this.addressingMode = addressingMode;

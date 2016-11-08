@@ -1,5 +1,7 @@
 package snes;
 
+import operations.Utilities;
+
 public class EightBitRegister implements Register {
     protected byte data;
     protected static final int MAX_EIGHT_BIT_VALUE = 256;
@@ -10,7 +12,11 @@ public class EightBitRegister implements Register {
 
     @Override
     public int read() {
-        return this.data >= 0 ? this.data : this.data + MAX_EIGHT_BIT_VALUE;
+        return Utilities.toUnsignedValue(this.data);
+    }
+
+    public byte readAsByte() {
+        return data;
     }
 
     @Override
@@ -36,9 +42,15 @@ public class EightBitRegister implements Register {
         }
     }
 
-    public boolean addByte(byte b) {
-        this.data += b;
-        return (int) this.data < ((int) this.data - (int) b);
+    public boolean addByte(byte b, boolean carryBit) {
+        boolean overflow = Utilities.toUnsignedValue(this.data) + Utilities.toUnsignedValue(b)
+                + (carryBit ? 1 : 0) > MAX_EIGHT_BIT_VALUE;
+        this.data += b + (carryBit ? 1 : 0);
+        return overflow;
+    }
+
+    public boolean signBit() {
+        return this.data >> 7 == 0x01;
     }
 
     public String toString() {
