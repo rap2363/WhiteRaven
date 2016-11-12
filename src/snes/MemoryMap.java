@@ -3,11 +3,7 @@ package snes;
 import java.util.Arrays;
 
 /**
- * This abstract class is a MemoryInterface and can read/write to contiguous
- * blocks of memory.
- * 
- * @author rparanjpe
- *
+ * This abstract class can read/write to contiguous blocks of memory.
  */
 public abstract class MemoryMap {
     protected byte[] memory;
