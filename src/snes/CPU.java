@@ -7,6 +7,7 @@ import java.util.List;
 import operations.AddWithCarry;
 import operations.Instruction;
 import operations.Operation;
+import operations.Utilities;
 
 class CPUMemory extends MemoryMap {
     private static final int NES_CPU_MEMORY_SIZE = 0x10000;
@@ -30,12 +31,10 @@ class CPUMemory extends MemoryMap {
 /**
  * Models the NES CPU
  *
- * @author rparanjpe
- *
  */
 public class CPU {
     public MemoryMap memory;
-    public SixteenBitRegister PC;
+    public Register PC;
     public EightBitRegister SP;
     public EightBitRegister A;
     public EightBitRegister X;
@@ -81,8 +80,16 @@ public class CPU {
         return state;
     }
 
-    public byte[] readAtPC(int n) {
-        return this.memory.read(this.PC.read(), n);
+    /**
+     * Read n bytes starting after the PC. For example, if PC=$0320,
+     * readAfterPC(3), would read in the bytes located at $0321, $0322, and
+     * $0323.
+     *
+     * @param n
+     * @return
+     */
+    public byte[] readAfterPC(int n) {
+        return this.memory.read(Utilities.addByteToUnsignedInt(this.PC.read(), (byte) 0x01), n);
     }
 
     public byte readOpcode() {
@@ -120,6 +127,7 @@ public class CPU {
         cpu.P.setCarryFlag();
 
         try {
+            System.out.println(cpu.state());
             cpu.fetchAndExecute();
             System.out.println(cpu.state());
             cpu.fetchAndExecute();
