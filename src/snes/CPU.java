@@ -7,6 +7,7 @@ import java.util.List;
 import operations.AddWithCarry;
 import operations.And;
 import operations.ArithmeticShiftLeft;
+import operations.BitTest;
 import operations.BranchIfCarryClear;
 import operations.BranchIfCarrySet;
 import operations.BranchIfEqual;
@@ -69,6 +70,7 @@ public class CPU {
         instructions.add(new BranchIfCarryClear());
         instructions.add(new BranchIfCarrySet());
         instructions.add(new BranchIfEqual());
+        instructions.add(new BitTest());
 
         for (Instruction instruction : instructions) {
             for (Operation operation : instruction.getOperations()) {
@@ -155,5 +157,7 @@ public class CPU {
         r.write(0xef);
         r.shiftRight(4);
         r.shiftLeft(5);
+        byte value = (byte) 0xef;
+        System.out.println((Utilities.bitShift(value, 6) & 0x01) == 0x01);
     }
 }

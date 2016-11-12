@@ -41,6 +41,9 @@ abstract class ArithmeticShiftLeftOperationBase extends Operation {
         } else {
             cpu.P.clearNegativeFlag();
         }
+
+        cpu.PC.incrementBy(numBytes);
+        cpu.cycles += cycles;
     }
 }
 
@@ -62,27 +65,11 @@ class ArithmeticShiftLeftZeroPage extends ArithmeticShiftLeftOperationBase {
     public ArithmeticShiftLeftZeroPage(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
         super(addressMode, opcode, numBytes, cycles);
     }
-
-    @Override
-    public void execute(CPU cpu) {
-        super.execute(cpu);
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
-    }
 }
 
 class ArithmeticShiftLeftZeroPageX extends ArithmeticShiftLeftOperationBase {
     public ArithmeticShiftLeftZeroPageX(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
         super(addressMode, opcode, numBytes, cycles);
-    }
-
-    @Override
-    public void execute(CPU cpu) {
-        super.execute(cpu);
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
     }
 }
 
@@ -90,27 +77,11 @@ class ArithmeticShiftLeftAbsolute extends ArithmeticShiftLeftOperationBase {
     public ArithmeticShiftLeftAbsolute(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
         super(addressMode, opcode, numBytes, cycles);
     }
-
-    @Override
-    public void execute(CPU cpu) {
-        super.execute(cpu);
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
-    }
 }
 
 class ArithmeticShiftLeftAbsoluteX extends ArithmeticShiftLeftOperationBase {
     public ArithmeticShiftLeftAbsoluteX(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
         super(addressMode, opcode, numBytes, cycles);
-    }
-
-    @Override
-    public void execute(CPU cpu) {
-        super.execute(cpu);
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
     }
 }
 

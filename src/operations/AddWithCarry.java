@@ -45,6 +45,9 @@ abstract class AddWithCarryOperationBase extends Operation {
         } else {
             cpu.P.clearNegativeFlag();
         }
+
+        cpu.PC.incrementBy(numBytes);
+        cpu.cycles += cycles;
     }
 }
 
@@ -52,27 +55,11 @@ class AddWithCarryImmediate extends AddWithCarryOperationBase {
     public AddWithCarryImmediate(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
         super(addressMode, opcode, numBytes, cycles);
     }
-
-    @Override
-    public void execute(CPU cpu) {
-        super.execute(cpu);
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
-    }
 }
 
 class AddWithCarryZeroPage extends AddWithCarryOperationBase {
     public AddWithCarryZeroPage(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
         super(addressMode, opcode, numBytes, cycles);
-    }
-
-    @Override
-    public void execute(CPU cpu) {
-        super.execute(cpu);
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
     }
 }
 
@@ -80,27 +67,11 @@ class AddWithCarryZeroPageX extends AddWithCarryOperationBase {
     public AddWithCarryZeroPageX(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
         super(addressMode, opcode, numBytes, cycles);
     }
-
-    @Override
-    public void execute(CPU cpu) {
-        super.execute(cpu);
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
-    }
 }
 
 class AddWithCarryAbsolute extends AddWithCarryOperationBase {
     public AddWithCarryAbsolute(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
         super(addressMode, opcode, numBytes, cycles);
-    }
-
-    @Override
-    public void execute(CPU cpu) {
-        super.execute(cpu);
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
     }
 }
 
@@ -112,9 +83,6 @@ class AddWithCarryAbsoluteX extends AddWithCarryOperationBase {
     @Override
     public void execute(CPU cpu) {
         super.execute(cpu);
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
 
         byte[] bytes = cpu.readAfterPC(numBytes - 1);
         if (Utilities.getOverflowFlag(bytes[1], cpu.X.readAsByte(), false)) {
@@ -132,9 +100,6 @@ class AddWithCarryAbsoluteY extends AddWithCarryOperationBase {
     public void execute(CPU cpu) {
         super.execute(cpu);
 
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
-
         byte[] bytes = cpu.readAfterPC(numBytes - 1);
         if (Utilities.getOverflowFlag(bytes[1], cpu.Y.readAsByte(), false)) {
             cpu.cycles++;
@@ -145,14 +110,6 @@ class AddWithCarryAbsoluteY extends AddWithCarryOperationBase {
 class AddWithCarryIndirectX extends AddWithCarryOperationBase {
     public AddWithCarryIndirectX(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
         super(addressMode, opcode, numBytes, cycles);
-    }
-
-    @Override
-    public void execute(CPU cpu) {
-        super.execute(cpu);
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
     }
 }
 
@@ -171,9 +128,6 @@ class AddWithCarryIndirectY extends AddWithCarryOperationBase {
         if (Utilities.getOverflowFlag(low, cpu.Y.readAsByte(), false)) {
             cpu.cycles++;
         }
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
     }
 }
 

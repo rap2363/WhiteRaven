@@ -31,6 +31,9 @@ abstract class AndOperationBase extends Operation {
         } else {
             cpu.P.clearNegativeFlag();
         }
+
+        cpu.PC.incrementBy(numBytes);
+        cpu.cycles += cycles;
     }
 }
 
@@ -38,27 +41,11 @@ class AndImmediate extends AndOperationBase {
     public AndImmediate(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
         super(addressMode, opcode, numBytes, cycles);
     }
-
-    @Override
-    public void execute(CPU cpu) {
-        super.execute(cpu);
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
-    }
 }
 
 class AndZeroPage extends AndOperationBase {
     public AndZeroPage(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
         super(addressMode, opcode, numBytes, cycles);
-    }
-
-    @Override
-    public void execute(CPU cpu) {
-        super.execute(cpu);
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
     }
 }
 
@@ -66,27 +53,11 @@ class AndZeroPageX extends AndOperationBase {
     public AndZeroPageX(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
         super(addressMode, opcode, numBytes, cycles);
     }
-
-    @Override
-    public void execute(CPU cpu) {
-        super.execute(cpu);
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
-    }
 }
 
 class AndAbsolute extends AndOperationBase {
     public AndAbsolute(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
         super(addressMode, opcode, numBytes, cycles);
-    }
-
-    @Override
-    public void execute(CPU cpu) {
-        super.execute(cpu);
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
     }
 }
 
@@ -98,9 +69,6 @@ class AndAbsoluteX extends AndOperationBase {
     @Override
     public void execute(CPU cpu) {
         super.execute(cpu);
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
 
         byte[] bytes = cpu.readAfterPC(numBytes - 1);
         if (Utilities.getOverflowFlag(bytes[1], cpu.X.readAsByte(), false)) {
@@ -118,9 +86,6 @@ class AndAbsoluteY extends AndOperationBase {
     public void execute(CPU cpu) {
         super.execute(cpu);
 
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
-
         byte[] bytes = cpu.readAfterPC(numBytes - 1);
         if (Utilities.getOverflowFlag(bytes[1], cpu.Y.readAsByte(), false)) {
             cpu.cycles++;
@@ -132,14 +97,6 @@ class AndIndirectX extends AndOperationBase {
     public AndIndirectX(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
         super(addressMode, opcode, numBytes, cycles);
     }
-
-    @Override
-    public void execute(CPU cpu) {
-        super.execute(cpu);
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
-    }
 }
 
 class AndIndirectY extends AndOperationBase {
@@ -150,9 +107,6 @@ class AndIndirectY extends AndOperationBase {
     @Override
     public void execute(CPU cpu) {
         super.execute(cpu);
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
 
         byte[] bytes = cpu.readAfterPC(numBytes - 1);
         int targetAddress = Utilities.toUnsignedValue(bytes[0]);
