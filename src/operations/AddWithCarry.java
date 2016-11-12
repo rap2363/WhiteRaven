@@ -8,7 +8,8 @@ abstract class AddWithCarryOperationBase extends Operation {
         super(addressingMode, opcode, numBytes, cycles);
     }
 
-    protected void baseExecute(CPU cpu) {
+    @Override
+    public void execute(CPU cpu) {
         byte value = AddressingModeUtilities.getValue(addressingMode, cpu, cpu.readAfterPC(numBytes));
         boolean carryFlag = cpu.A.addByte(value, cpu.P.carryFlag());
         boolean overflowFlag = Utilities.getOverflowFlag((byte) cpu.A.read(), value, carryFlag);
@@ -47,7 +48,7 @@ class AddWithCarryImmediate extends AddWithCarryOperationBase {
 
     @Override
     public void execute(CPU cpu) {
-        baseExecute(cpu);
+        super.execute(cpu);
 
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;
@@ -61,7 +62,7 @@ class AddWithCarryZeroPage extends AddWithCarryOperationBase {
 
     @Override
     public void execute(CPU cpu) {
-        baseExecute(cpu);
+        super.execute(cpu);
 
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;
@@ -75,7 +76,7 @@ class AddWithCarryZeroPageX extends AddWithCarryOperationBase {
 
     @Override
     public void execute(CPU cpu) {
-        baseExecute(cpu);
+        super.execute(cpu);
 
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;
@@ -89,7 +90,7 @@ class AddWithCarryAbsolute extends AddWithCarryOperationBase {
 
     @Override
     public void execute(CPU cpu) {
-        baseExecute(cpu);
+        super.execute(cpu);
 
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;
@@ -103,7 +104,7 @@ class AddWithCarryAbsoluteX extends AddWithCarryOperationBase {
 
     @Override
     public void execute(CPU cpu) {
-        baseExecute(cpu);
+        super.execute(cpu);
 
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;
@@ -122,7 +123,7 @@ class AddWithCarryAbsoluteY extends AddWithCarryOperationBase {
 
     @Override
     public void execute(CPU cpu) {
-        baseExecute(cpu);
+        super.execute(cpu);
 
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;
@@ -141,7 +142,7 @@ class AddWithCarryIndirectX extends AddWithCarryOperationBase {
 
     @Override
     public void execute(CPU cpu) {
-        baseExecute(cpu);
+        super.execute(cpu);
 
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;
@@ -155,7 +156,7 @@ class AddWithCarryIndirectY extends AddWithCarryOperationBase {
 
     @Override
     public void execute(CPU cpu) {
-        baseExecute(cpu);
+        super.execute(cpu);
 
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;

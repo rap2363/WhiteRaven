@@ -116,8 +116,10 @@ public class CPU {
         CPU cpu = new CPU();
         cpu.P.write(0x30);
         cpu.PC.write(0x0603);
-        cpu.memory.write(0x0603, (byte) 0x69);
-        cpu.memory.write(0x0604, (byte) 0x32);
+        cpu.X.write(0x01);
+        cpu.memory.write(0x32, (byte) 0x33);
+        cpu.memory.write(0x0603, (byte) 0x75);
+        cpu.memory.write(0x0604, (byte) 0x31);
         cpu.memory.write(0x0605, (byte) 0x69);
         cpu.memory.write(0x0606, (byte) 0x01);
         cpu.memory.write(0x0607, (byte) 0x69);
