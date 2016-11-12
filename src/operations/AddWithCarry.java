@@ -8,9 +8,16 @@ abstract class AddWithCarryOperationBase extends Operation {
         super(addressingMode, opcode, numBytes, cycles);
     }
 
+    /**
+     * Add with Carry: The instruction adds the contents of a memory location to
+     * the accumulator together with the carry bit. If overflow occurs the carry
+     * bit is set, this enables multiple byte addition to be performed.
+     *
+     * A,Z,C,N = A+M+C
+     */
     @Override
     public void execute(CPU cpu) {
-        byte value = AddressingModeUtilities.getValue(addressingMode, cpu, cpu.readAfterPC(numBytes));
+        byte value = AddressingModeUtilities.getValue(addressingMode, cpu, cpu.readAfterPC(numBytes - 1));
         boolean carryFlag = cpu.A.addByte(value, cpu.P.carryFlag());
         boolean overflowFlag = Utilities.getOverflowFlag((byte) cpu.A.read(), value, carryFlag);
 
@@ -109,7 +116,7 @@ class AddWithCarryAbsoluteX extends AddWithCarryOperationBase {
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;
 
-        byte[] bytes = cpu.readAfterPC(numBytes);
+        byte[] bytes = cpu.readAfterPC(numBytes - 1);
         if (Utilities.getOverflowFlag(bytes[1], cpu.X.readAsByte(), false)) {
             cpu.cycles++;
         }
@@ -128,7 +135,7 @@ class AddWithCarryAbsoluteY extends AddWithCarryOperationBase {
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;
 
-        byte[] bytes = cpu.readAfterPC(numBytes);
+        byte[] bytes = cpu.readAfterPC(numBytes - 1);
         if (Utilities.getOverflowFlag(bytes[1], cpu.Y.readAsByte(), false)) {
             cpu.cycles++;
         }
@@ -158,20 +165,21 @@ class AddWithCarryIndirectY extends AddWithCarryOperationBase {
     public void execute(CPU cpu) {
         super.execute(cpu);
 
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
-
-        byte[] bytes = cpu.readAfterPC(numBytes);
+        byte[] bytes = cpu.readAfterPC(numBytes - 1);
         int targetAddress = Utilities.toUnsignedValue(bytes[0]);
         byte low = cpu.memory.read(targetAddress);
         if (Utilities.getOverflowFlag(low, cpu.Y.readAsByte(), false)) {
             cpu.cycles++;
         }
+
+        cpu.PC.incrementBy(numBytes);
+        cpu.cycles += cycles;
     }
 }
 
 public class AddWithCarry extends Instruction {
     public AddWithCarry() {
+        this.assemblyInstructionName = "ADC";
         this.addOperation(new AddWithCarryImmediate(AddressingMode.Immediate, (byte) 0x69, 2, 2));
         this.addOperation(new AddWithCarryZeroPage(AddressingMode.ZeroPage, (byte) 0x65, 2, 3));
         this.addOperation(new AddWithCarryZeroPageX(AddressingMode.ZeroPageX, (byte) 0x75, 2, 4));

@@ -48,4 +48,18 @@ public interface Register {
             decrement();
         }
     }
+
+    /**
+     * Bit shift the register value left by n
+     *
+     * @param n
+     */
+    public void shiftLeft(int n);
+
+    /**
+     * Bit shift the register value right by n
+     *
+     * @param n
+     */
+    public void shiftRight(int n);
 }

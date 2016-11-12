@@ -6,7 +6,7 @@ public abstract class Utilities {
     /**
      * Returns true if b1 and b2 added together would result in setting an
      * overflow flag
-     * 
+     *
      * @param b1
      * @param b2
      * @return
@@ -27,7 +27,7 @@ public abstract class Utilities {
 
     /**
      * Convert a byte to an unsigned value represented as an integer
-     * 
+     *
      * @param b
      * @return
      */
@@ -40,7 +40,7 @@ public abstract class Utilities {
      * will cover a range from 0 --> 16^4 - 1). e.g. high = 0xda, low = 0x03,
      * the concatenated bytes become 0xda03, which is 55811 in the unsigned
      * representation.
-     * 
+     *
      * @param high
      * @param low
      * @return
@@ -50,13 +50,38 @@ public abstract class Utilities {
     }
 
     /**
-     * Add a byte to an unsigned integer
-     * 
+     * Add a byte to an integer
+     *
      * @param x
      * @param b
      * @return
      */
-    public static int addByteToUnsignedInt(int x, byte b) {
+    public static int addUnsignedByteToInt(int x, byte b) {
         return x + toUnsignedValue(b);
+    }
+
+    /**
+     * Adds a signed byte to an integer
+     *
+     * @param x
+     * @param b
+     * @return
+     */
+    public static int addByteToInt(int x, byte b) {
+        return x + b;
+    }
+
+    /**
+     * Bit shifts by an amount n. If n is positive, shifts to the right, and if
+     * negative shifts to the left.
+     *
+     * @param n
+     * @return
+     */
+    public static byte bitShift(byte b, int n) {
+        if (n < 0) {
+            return (byte) (b << (-n));
+        }
+        return (byte) ((b >> n) & (0xff >> n));
     }
 }

@@ -1,10 +1,15 @@
 package snes;
 
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import operations.AddWithCarry;
+import operations.And;
+import operations.ArithmeticShiftLeft;
+import operations.BranchIfCarryClear;
+import operations.BranchIfCarrySet;
+import operations.BranchIfEqual;
 import operations.Instruction;
 import operations.Operation;
 import operations.Utilities;
@@ -34,7 +39,7 @@ class CPUMemory extends MemoryMap {
  */
 public class CPU {
     public MemoryMap memory;
-    public Register PC;
+    public SixteenBitRegister PC;
     public EightBitRegister SP;
     public EightBitRegister A;
     public EightBitRegister X;
@@ -57,7 +62,14 @@ public class CPU {
 
         operationMap = new HashMap<Byte, Operation>();
 
-        List<Instruction> instructions = Arrays.asList(new AddWithCarry());
+        List<Instruction> instructions = new LinkedList<Instruction>();
+        instructions.add(new AddWithCarry());
+        instructions.add(new And());
+        instructions.add(new ArithmeticShiftLeft());
+        instructions.add(new BranchIfCarryClear());
+        instructions.add(new BranchIfCarrySet());
+        instructions.add(new BranchIfEqual());
+
         for (Instruction instruction : instructions) {
             for (Operation operation : instruction.getOperations()) {
                 operationMap.put(operation.opcode, operation);
@@ -89,7 +101,7 @@ public class CPU {
      * @return
      */
     public byte[] readAfterPC(int n) {
-        return this.memory.read(Utilities.addByteToUnsignedInt(this.PC.read(), (byte) 0x01), n);
+        return this.memory.read(Utilities.addUnsignedByteToInt(this.PC.read(), (byte) 0x01), n);
     }
 
     public byte readOpcode() {
@@ -119,9 +131,9 @@ public class CPU {
         cpu.X.write(0x01);
         cpu.memory.write(0x32, (byte) 0x33);
         cpu.memory.write(0x0603, (byte) 0x75);
-        cpu.memory.write(0x0604, (byte) 0x31);
-        cpu.memory.write(0x0605, (byte) 0x69);
-        cpu.memory.write(0x0606, (byte) 0x01);
+        cpu.memory.write(0x0604, (byte) 0xf1);
+        cpu.memory.write(0x0605, (byte) 0x29);
+        cpu.memory.write(0x0606, (byte) 0xff);
         cpu.memory.write(0x0607, (byte) 0x69);
         cpu.memory.write(0x0608, (byte) 0x01);
 
@@ -139,5 +151,9 @@ public class CPU {
         } catch (UnimplementedOpcode e) {
             System.out.println(e.getMessage());
         }
+        Register r = new EightBitRegister();
+        r.write(0xef);
+        r.shiftRight(4);
+        r.shiftLeft(5);
     }
 }

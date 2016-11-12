@@ -42,6 +42,16 @@ public class EightBitRegister implements Register {
         }
     }
 
+    @Override
+    public void shiftLeft(int n) {
+        this.data = Utilities.bitShift(this.data, -n);
+    }
+
+    @Override
+    public void shiftRight(int n) {
+        this.data = Utilities.bitShift(this.data, n);
+    }
+
     public boolean addByte(byte b, boolean carryBit) {
         boolean overflow = Utilities.toUnsignedValue(this.data) + Utilities.toUnsignedValue(b)
                 + (carryBit ? 1 : 0) > MAX_EIGHT_BIT_VALUE;
@@ -49,8 +59,12 @@ public class EightBitRegister implements Register {
         return overflow;
     }
 
+    public void andByte(byte b) {
+        this.data &= b;
+    }
+
     public boolean signBit() {
-        return this.data >> 7 == 0x01;
+        return this.data < 0;
     }
 
     public String toString() {

@@ -5,6 +5,7 @@ import java.util.List;
 
 public abstract class Instruction {
     protected List<Operation> operations;
+    protected String assemblyInstructionName;
 
     Instruction() {
         this.operations = new LinkedList<Operation>();

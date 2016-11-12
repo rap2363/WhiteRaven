@@ -12,8 +12,43 @@ public final class AddressingModeUtilities {
     }
 
     /**
+     * Return the unsigned integer address from applying this addressing mode
+     *
+     * @param addressingMode
+     * @param cpu
+     * @param bytes
+     * @return
+     */
+    public static int getAddress(AddressingMode addressingMode, CPU cpu, byte[] bytes) {
+
+        if (addressingMode == AddressingMode.ZeroPage) {
+            return getAddressZeroPage(bytes);
+        } else if (addressingMode == AddressingMode.ZeroPageX) {
+            return getAddressZeroPageX(cpu, bytes);
+        } else if (addressingMode == AddressingMode.Absolute) {
+            return getAddressAbsolute(bytes);
+        } else if (addressingMode == AddressingMode.AbsoluteX) {
+            return getAddressAbsoluteX(cpu, bytes);
+        } else if (addressingMode == AddressingMode.AbsoluteY) {
+            return getAddressAbsoluteY(cpu, bytes);
+        } else if (addressingMode == AddressingMode.IndirectX) {
+            return getAddressIndirectX(cpu, bytes);
+        } else if (addressingMode == AddressingMode.IndirectY) {
+            return getAddressIndirectY(cpu, bytes);
+        }
+
+        try {
+            throw new UnimplementedAddressingMode("Unimplemented getAddress() for: " + addressingMode.toString());
+        } catch (UnimplementedAddressingMode e) {
+            e.printStackTrace();
+        }
+
+        return -1;
+    }
+
+    /**
      * Returns a byte from applying this addressing mode
-     * 
+     *
      * @param addressingMode
      * @param cpu
      * @param bytes
@@ -39,12 +74,17 @@ public final class AddressingModeUtilities {
             return getValueIndirectY(cpu, bytes);
         }
 
+        try {
+            throw new UnimplementedAddressingMode("Unimplemented getValue() for: " + addressingMode.toString());
+        } catch (UnimplementedAddressingMode e) {
+            e.printStackTrace();
+        }
         return 0;
     }
 
     /**
      * Immediate addressing mode: (e.g. LDA #$3e --> Load accumulator with 62)
-     * 
+     *
      * @param cpu
      * @param bytes
      * @return
@@ -54,64 +94,134 @@ public final class AddressingModeUtilities {
     }
 
     /**
+     * Return the address (on the zero page) according to the bytes read from a
+     * zero-page addressing mode instruction
+     *
+     * @param bytes
+     * @return
+     */
+    private static int getAddressZeroPage(byte[] bytes) {
+        return Utilities.toUnsignedValue(bytes[0]);
+    }
+
+    /**
      * ZeroPage addressing mode: (e.g. STA $02 --> Store accumulator into the
      * value in $02)
-     * 
+     *
      * @param cpu
      * @param bytes
      * @return
      */
     private static byte getValueZeroPage(CPU cpu, byte[] bytes) {
-        return cpu.memory.read(Utilities.toUnsignedValue(bytes[0]));
+        return cpu.memory.read(getAddressZeroPage(bytes));
+    }
+
+    /**
+     * Return the zero page address with the value of X added to it.
+     *
+     * @param cpu
+     * @param bytes
+     * @return
+     */
+    private static int getAddressZeroPageX(CPU cpu, byte[] bytes) {
+        return Utilities.toUnsignedValue((byte) (bytes[0] + cpu.X.readAsByte()));
     }
 
     /**
      * ZeroPage,X addressing mode: (e.g. ADC $04,X --> Add accumulator to value
      * at $($04 + X))
-     * 
+     *
      * @param cpu
      * @param bytes
      * @return
      */
     private static byte getValueZeroPageX(CPU cpu, byte[] bytes) {
-        return cpu.memory.read(Utilities.toUnsignedValue((byte) (bytes[0] + cpu.X.readAsByte())));
+        return cpu.memory.read(getAddressZeroPageX(cpu, bytes));
+    }
+
+    /**
+     * Return the total 16-bit absolute address from concatenating the bytes
+     *
+     * @param bytes
+     * @return
+     */
+    private static int getAddressAbsolute(byte[] bytes) {
+        return Utilities.toUnsignedValue(bytes[0], bytes[1]);
     }
 
     /**
      * Absolute addressing mode: (e.g. JMP #$3249 --> Set PC to #$3249)
-     * 
+     *
      * @param cpu
      * @param bytes
      * @return
      */
     private static byte getValueAbsolute(CPU cpu, byte[] bytes) {
-        return cpu.memory.read(Utilities.toUnsignedValue(bytes[0], bytes[1]));
+        return cpu.memory.read(getAddressAbsolute(bytes));
+    }
+
+    /**
+     * Add an absolute address from the bytes to the X register value to get a
+     * target address.
+     *
+     * @param cpu
+     * @param bytes
+     * @return
+     */
+    private static int getAddressAbsoluteX(CPU cpu, byte[] bytes) {
+        return Utilities.addUnsignedByteToInt(Utilities.toUnsignedValue(bytes[0], bytes[1]), cpu.X.readAsByte());
     }
 
     /**
      * Absolute,X addressing mode: (e.g. STA $3000,X --> Store accumulator byte
      * at $($3000 + X))
-     * 
+     *
      * @param cpu
      * @param bytes
      * @return
      */
     private static byte getValueAbsoluteX(CPU cpu, byte[] bytes) {
-        return cpu.memory.read(
-                Utilities.addByteToUnsignedInt(Utilities.toUnsignedValue(bytes[0], bytes[1]), cpu.X.readAsByte()));
+        return cpu.memory.read(getAddressAbsoluteX(cpu, bytes));
     }
 
     /**
-     * Absolute,X addressing mode: (e.g. STA $3000,Y --> Store accumulator byte
+     * Add an absolute address from the bytes to the Y register value to get a
+     * target address.
+     *
+     * @param cpu
+     * @param bytes
+     * @return
+     */
+    private static int getAddressAbsoluteY(CPU cpu, byte[] bytes) {
+        return Utilities.addUnsignedByteToInt(Utilities.toUnsignedValue(bytes[0], bytes[1]), cpu.Y.readAsByte());
+    }
+
+    /**
+     * Absolute,Y addressing mode: (e.g. STA $3000,Y --> Store accumulator byte
      * at $($3000 + Y)
-     * 
+     *
      * @param cpu
      * @param bytes
      * @return
      */
     private static byte getValueAbsoluteY(CPU cpu, byte[] bytes) {
-        return cpu.memory.read(
-                Utilities.addByteToUnsignedInt(Utilities.toUnsignedValue(bytes[0], bytes[1]), cpu.Y.readAsByte()));
+        return cpu.memory.read(getAddressAbsoluteY(cpu, bytes));
+    }
+
+    /**
+     * Obtain an address through an indirect call. Add the X register with a
+     * byte to get a zero page address (with wrap-around), which points to a
+     * LSB,MSB pair that contains the target address.
+     *
+     * @param cpu
+     * @param bytes
+     * @return
+     */
+    private static int getAddressIndirectX(CPU cpu, byte[] bytes) {
+        int targetAddress = Utilities.toUnsignedValue((byte) (bytes[0] + cpu.X.readAsByte()));
+        byte low = cpu.memory.read(targetAddress);
+        byte high = cpu.memory.read(Utilities.addUnsignedByteToInt(targetAddress, (byte) 0x01));
+        return Utilities.toUnsignedValue(high, low);
     }
 
     /**
@@ -119,16 +229,28 @@ public final class AddressingModeUtilities {
      * address which points to the LSB (low). One after it is the MSB.
      * Concatenate the bytes to obtain a new address which contains the final
      * value.)
-     * 
+     *
      * @param cpu
      * @param bytes
      * @return
      */
     private static byte getValueIndirectX(CPU cpu, byte[] bytes) {
-        int targetAddress = Utilities.toUnsignedValue((byte) (bytes[0] + cpu.X.readAsByte()));
+        return cpu.memory.read(getAddressIndirectX(cpu, bytes));
+    }
+
+    /**
+     * Obtain an address through indirection by reading the LSB,MSB from the
+     * byte, then add Y to the concatenated target to obtain the final address.
+     *
+     * @param cpu
+     * @param bytes
+     */
+    private static int getAddressIndirectY(CPU cpu, byte[] bytes) {
+        int targetAddress = Utilities.toUnsignedValue(bytes[0]);
         byte low = cpu.memory.read(targetAddress);
-        byte high = cpu.memory.read(Utilities.addByteToUnsignedInt(targetAddress, (byte) 0x01));
-        return cpu.memory.read(Utilities.toUnsignedValue(high, low));
+        byte high = cpu.memory.read(Utilities.addUnsignedByteToInt(targetAddress, (byte) 0x01));
+        int concatenatedTarget = cpu.memory.read(Utilities.toUnsignedValue(high, low));
+        return Utilities.addUnsignedByteToInt(concatenatedTarget, cpu.Y.readAsByte());
     }
 
     /**
@@ -136,17 +258,12 @@ public final class AddressingModeUtilities {
      * LSB and MSB respectively. Concatenate the two bytes to obtain a new
      * address. Add the value in Y to that address and read from that area in
      * memory.)
-     * 
+     *
      * @param cpu
      * @param bytes
      * @return
      */
     private static byte getValueIndirectY(CPU cpu, byte[] bytes) {
-        int targetAddress = Utilities.toUnsignedValue(bytes[0]);
-        byte low = cpu.memory.read(targetAddress);
-        byte high = cpu.memory.read(Utilities.addByteToUnsignedInt(targetAddress, (byte) 0x01));
-        int concatenatedTarget = cpu.memory.read(Utilities.toUnsignedValue(high, low));
-        return cpu.memory.read(Utilities.addByteToUnsignedInt(concatenatedTarget, cpu.Y.readAsByte()));
-
+        return cpu.memory.read(getAddressIndirectY(cpu, bytes));
     }
 }
