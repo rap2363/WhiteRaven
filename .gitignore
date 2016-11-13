@@ -3,3 +3,7 @@ bin/
 .project
 .settings
 .classpath
+
+# IntelliJ related setting
+*.iml
+.idea

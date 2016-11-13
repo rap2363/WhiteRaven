@@ -1,19 +1,11 @@
 package snes;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import operations.AddWithCarry;
-import operations.And;
-import operations.ArithmeticShiftLeft;
-import operations.BitTest;
-import operations.BranchIfCarryClear;
-import operations.BranchIfCarrySet;
-import operations.BranchIfEqual;
-import operations.Instruction;
-import operations.Operation;
-import operations.Utilities;
+import operations.*;
 
 class CPUMemory extends MemoryMap {
     private static final int NES_CPU_MEMORY_SIZE = 0x10000;
@@ -63,14 +55,28 @@ public class CPU {
 
         operationMap = new HashMap<Byte, Operation>();
 
-        List<Instruction> instructions = new LinkedList<Instruction>();
-        instructions.add(new AddWithCarry());
-        instructions.add(new And());
-        instructions.add(new ArithmeticShiftLeft());
-        instructions.add(new BranchIfCarryClear());
-        instructions.add(new BranchIfCarrySet());
-        instructions.add(new BranchIfEqual());
-        instructions.add(new BitTest());
+        List<Instruction> instructions = new LinkedList<Instruction>(
+            Arrays.asList(
+                    new AddWithCarry(),
+                    new And(),
+                    new ArithmeticShiftLeft(),
+                    new BranchIfCarryClear(),
+                    new BranchIfCarrySet(),
+                    new BranchIfEqual(),
+                    new BitTest(),
+                    new BranchIfMinus(),
+                    new BranchIfNotEqual(),
+                    new BranchIfPositive(),
+    //              new Break(),
+                    new BranchIfOverflowClear(),
+                    new BranchIfOverflowSet(),
+                    new ClearCarryFlag(),
+                    new ClearDecimalMode(),
+                    new ClearInterruptDisable(),
+                    new ClearOverflowFlag(),
+                    new Compare()
+            )
+        );
 
         for (Instruction instruction : instructions) {
             for (Operation operation : instruction.getOperations()) {
@@ -114,7 +120,7 @@ public class CPU {
      * Simulates one step in the computing cycle. Reads the byte at the PC for
      * the opcode and carries through with execution. Throws an exception if we
      * do not support the opcode fetched from the PC.
-     * 
+     *
      * @throws UnimplementedOpcode
      */
     public void fetchAndExecute() throws UnimplementedOpcode {
@@ -132,15 +138,15 @@ public class CPU {
         cpu.PC.write(0x0603);
         cpu.X.write(0x01);
         cpu.memory.write(0x32, (byte) 0x33);
-        cpu.memory.write(0x0603, (byte) 0x75);
-        cpu.memory.write(0x0604, (byte) 0xf1);
+        cpu.memory.write(0x0603, (byte) 0xC9);
+        cpu.memory.write(0x0604, (byte) 0xdf);
         cpu.memory.write(0x0605, (byte) 0x29);
         cpu.memory.write(0x0606, (byte) 0xff);
         cpu.memory.write(0x0607, (byte) 0x69);
         cpu.memory.write(0x0608, (byte) 0x01);
 
         cpu.A.write(0xdf);
-        cpu.P.setCarryFlag();
+        cpu.P.setNegativeFlag();
 
         try {
             System.out.println(cpu.state());
@@ -153,11 +159,7 @@ public class CPU {
         } catch (UnimplementedOpcode e) {
             System.out.println(e.getMessage());
         }
-        Register r = new EightBitRegister();
-        r.write(0xef);
-        r.shiftRight(4);
-        r.shiftLeft(5);
-        byte value = (byte) 0xef;
-        System.out.println((Utilities.bitShift(value, 6) & 0x01) == 0x01);
+        byte value = (byte) ((byte) 0xdf - (byte) 0x01);
+        System.out.println(String.format("0x%02x", value));
     }
 }
