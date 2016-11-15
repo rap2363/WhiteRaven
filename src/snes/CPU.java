@@ -74,7 +74,16 @@ public class CPU {
                     new ClearDecimalMode(),
                     new ClearInterruptDisable(),
                     new ClearOverflowFlag(),
-                    new Compare()
+                    new Compare(),
+                    new CompareX(),
+                    new CompareY(),
+                    new DecrementMemory(),
+                    new DecrementX(),
+                    new DecrementY(),
+//                    new ExclusiveOr(),
+                    new IncrementMemory(),
+                    new IncrementX(),
+                    new IncrementY()
             )
         );
 
@@ -127,7 +136,7 @@ public class CPU {
         byte opcode = this.memory.read(this.PC.read());
         Operation op = this.operationMap.get(opcode);
         if (op == null) {
-            throw new UnimplementedOpcode("Unimplemented instruction: " + opcode);
+            throw new UnimplementedOpcode("Unimplemented instruction: " + String.format("0x%02x", opcode));
         }
         op.execute(this);
     }
@@ -136,17 +145,17 @@ public class CPU {
         CPU cpu = new CPU();
         cpu.P.write(0x30);
         cpu.PC.write(0x0603);
+        cpu.memory.write(0x0306, (byte) 0x00);
         cpu.X.write(0x01);
-        cpu.memory.write(0x32, (byte) 0x33);
-        cpu.memory.write(0x0603, (byte) 0xC9);
-        cpu.memory.write(0x0604, (byte) 0xdf);
-        cpu.memory.write(0x0605, (byte) 0x29);
-        cpu.memory.write(0x0606, (byte) 0xff);
-        cpu.memory.write(0x0607, (byte) 0x69);
-        cpu.memory.write(0x0608, (byte) 0x01);
+        cpu.memory.write(0x32, (byte) 0xCE);
+        cpu.memory.write(0x0603, (byte) 0xCE);
+        cpu.memory.write(0x0604, (byte) 0x03);
+        cpu.memory.write(0x0605, (byte) 0x06);
+        cpu.memory.write(0x0606, (byte) 0xCA);
+        cpu.memory.write(0x0607, (byte) 0xCA);
+        cpu.memory.write(0x0608, (byte) 0xCA);
 
         cpu.A.write(0xdf);
-        cpu.P.setNegativeFlag();
 
         try {
             System.out.println(cpu.state());
@@ -159,7 +168,6 @@ public class CPU {
         } catch (UnimplementedOpcode e) {
             System.out.println(e.getMessage());
         }
-        byte value = (byte) ((byte) 0xdf - (byte) 0x01);
-        System.out.println(String.format("0x%02x", value));
+        System.out.println(String.format("0x%02x", cpu.memory.read(0x0306)));
     }
 }
