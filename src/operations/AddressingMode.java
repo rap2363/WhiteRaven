@@ -1,5 +1,5 @@
 package operations;
 
 public enum AddressingMode {
-    Implicit, Immediate, ZeroPage, ZeroPageX, Relative, Absolute, AbsoluteX, AbsoluteY, Indirect, IndirectX, IndirectY
+    Implicit, Immediate, ZeroPage, ZeroPageX, ZeroPageY, Relative, Absolute, AbsoluteX, AbsoluteY, Indirect, IndirectX, IndirectY
 }

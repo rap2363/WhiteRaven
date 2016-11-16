@@ -5,11 +5,10 @@ import snes.CPU;
 /**
  * Stateless utilities class that is used in conjunction with Operations to
  * retrieve specific bytes for various addressing modes
- * 
+ *
  */
 public final class AddressingModeUtilities {
-    private AddressingModeUtilities() {
-    }
+    private AddressingModeUtilities() {}
 
     /**
      * Return the unsigned integer address from applying this addressing mode
@@ -21,20 +20,15 @@ public final class AddressingModeUtilities {
      */
     public static int getAddress(AddressingMode addressingMode, CPU cpu, byte[] bytes) {
 
-        if (addressingMode == AddressingMode.ZeroPage) {
-            return getAddressZeroPage(bytes);
-        } else if (addressingMode == AddressingMode.ZeroPageX) {
-            return getAddressZeroPageX(cpu, bytes);
-        } else if (addressingMode == AddressingMode.Absolute) {
-            return getAddressAbsolute(bytes);
-        } else if (addressingMode == AddressingMode.AbsoluteX) {
-            return getAddressAbsoluteX(cpu, bytes);
-        } else if (addressingMode == AddressingMode.AbsoluteY) {
-            return getAddressAbsoluteY(cpu, bytes);
-        } else if (addressingMode == AddressingMode.IndirectX) {
-            return getAddressIndirectX(cpu, bytes);
-        } else if (addressingMode == AddressingMode.IndirectY) {
-            return getAddressIndirectY(cpu, bytes);
+        switch (addressingMode) {
+            case ZeroPage:  return getAddressZeroPage(bytes);
+            case ZeroPageX: return getAddressZeroPageX(cpu, bytes);
+            case ZeroPageY: return getAddressZeroPageY(cpu, bytes);
+            case Absolute:  return getAddressAbsolute(bytes);
+            case AbsoluteX: return getAddressAbsoluteX(cpu, bytes);
+            case AbsoluteY: return getAddressAbsoluteY(cpu, bytes);
+            case IndirectX: return getAddressIndirectX(cpu, bytes);
+            case IndirectY: return getAddressIndirectY(cpu, bytes);
         }
 
         try {
@@ -56,22 +50,16 @@ public final class AddressingModeUtilities {
      */
     public static byte getValue(AddressingMode addressingMode, CPU cpu, byte[] bytes) {
 
-        if (addressingMode == AddressingMode.Immediate) {
-            return getValueImmediate(cpu, bytes);
-        } else if (addressingMode == AddressingMode.ZeroPage) {
-            return getValueZeroPage(cpu, bytes);
-        } else if (addressingMode == AddressingMode.ZeroPageX) {
-            return getValueZeroPageX(cpu, bytes);
-        } else if (addressingMode == AddressingMode.Absolute) {
-            return getValueAbsolute(cpu, bytes);
-        } else if (addressingMode == AddressingMode.AbsoluteX) {
-            return getValueAbsoluteX(cpu, bytes);
-        } else if (addressingMode == AddressingMode.AbsoluteY) {
-            return getValueAbsoluteY(cpu, bytes);
-        } else if (addressingMode == AddressingMode.IndirectX) {
-            return getValueIndirectX(cpu, bytes);
-        } else if (addressingMode == AddressingMode.IndirectY) {
-            return getValueIndirectY(cpu, bytes);
+        switch (addressingMode) {
+            case Immediate: return getValueImmediate(cpu, bytes);
+            case ZeroPage:  return getValueZeroPage(cpu, bytes);
+            case ZeroPageX: return getValueZeroPageX(cpu, bytes);
+            case ZeroPageY: return getValueZeroPageY(cpu, bytes);
+            case Absolute:  return getValueAbsolute(cpu, bytes);
+            case AbsoluteX: return getValueAbsoluteX(cpu, bytes);
+            case AbsoluteY: return getValueAbsoluteY(cpu, bytes);
+            case IndirectX: return getValueIndirectX(cpu, bytes);
+            case IndirectY: return getValueIndirectY(cpu, bytes);
         }
 
         try {
@@ -79,6 +67,7 @@ public final class AddressingModeUtilities {
         } catch (UnimplementedAddressingMode e) {
             e.printStackTrace();
         }
+
         return 0;
     }
 
@@ -139,6 +128,28 @@ public final class AddressingModeUtilities {
         return cpu.memory.read(getAddressZeroPageX(cpu, bytes));
     }
 
+    /**
+     * Return the zero page address with the value of Y added to it.
+     *
+     * @param cpu
+     * @param bytes
+     * @return
+     */
+    private static int getAddressZeroPageY(CPU cpu, byte[] bytes) {
+        return Utilities.toUnsignedValue((byte) (bytes[0] + cpu.Y.readAsByte()));
+    }
+
+    /**
+     * ZeroPage,Y addressing mode: (e.g. ADC $04,Y --> Add accumulator to value
+     * at $($04 + Y))
+     *
+     * @param cpu
+     * @param bytes
+     * @return
+     */
+    private static byte getValueZeroPageY(CPU cpu, byte[] bytes) {
+        return cpu.memory.read(getAddressZeroPageY(cpu, bytes));
+    }
     /**
      * Return the total 16-bit absolute address from concatenating the bytes
      *

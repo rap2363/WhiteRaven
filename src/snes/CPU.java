@@ -84,7 +84,20 @@ public class CPU {
                     new IncrementMemory(),
                     new IncrementX(),
                     new IncrementY(),
-                    new LogicalOR()
+                    new Jump(),
+//                    new JumpToSubroutine(),
+                    new LoadAccumulator(),
+                    new LoadX(),
+                    new LoadY(),
+                    new LogicalShiftRight(),
+                    new NoOperation(),
+                    new LogicalOR(),
+//                    new PushAccumulator(),
+//                    new PushProcessorStatus(),
+//                    new PullAccumulator(),
+//                    new PullProcessorStatus(),
+                    new RotateLeft(),
+                    new RotateRight()
             )
         );
 

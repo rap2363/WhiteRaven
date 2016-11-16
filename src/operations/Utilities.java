@@ -84,4 +84,16 @@ public abstract class Utilities {
         }
         return (byte) ((b >> n) & (0xff >> n));
     }
+
+    /**
+     * Return the bit value in a byte at the nth location. Bit 7 is the
+     * left most bit and bit 0 is the rightmost.
+     *
+     * @param b
+     * @param n
+     * @return
+     */
+    public static boolean bitAt(byte b, int n) {
+        return (bitShift(b, n) & (byte) 0x01) == (byte) 0x01;
+    }
 }
