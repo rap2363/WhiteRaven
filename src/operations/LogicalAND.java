@@ -2,38 +2,15 @@ package operations;
 
 import snes.CPU;
 
-abstract class AndOperationBase extends Operation {
+abstract class AndOperationBase extends BooleanLogicOperation {
 
     AndOperationBase(AddressingMode addressingMode, byte opcode, int numBytes, int cycles) {
         super(addressingMode, opcode, numBytes, cycles);
     }
 
-    /**
-     * A logical AND is performed, bit by bit, on the accumulator contents using
-     * the contents of a byte of memory.
-     * 
-     * A,Z,N = A&M
-     */
     @Override
-    public void execute(CPU cpu) {
-        byte value = AddressingModeUtilities.getValue(addressingMode, cpu, cpu.readAfterPC(numBytes - 1));
+    protected void operation(CPU cpu, byte value) {
         cpu.A.andByte(value);
-
-        // Set the processor status flags
-        if (cpu.A.read() == 0) {
-            cpu.P.setZeroFlag();
-        } else {
-            cpu.P.clearZeroFlag();
-        }
-
-        if (cpu.A.signBit()) {
-            cpu.P.setNegativeFlag();
-        } else {
-            cpu.P.clearNegativeFlag();
-        }
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
     }
 }
 
@@ -117,9 +94,9 @@ class AndIndirectY extends AndOperationBase {
     }
 }
 
-public class And extends Instruction {
+public class LogicalAND extends Instruction {
 
-    public And() {
+    public LogicalAND() {
         this.assemblyInstructionName = "AND";
         this.addOperation(new AndImmediate(AddressingMode.Immediate, (byte) 0x29, 2, 2));
         this.addOperation(new AndZeroPage(AddressingMode.ZeroPage, (byte) 0x25, 2, 3));

@@ -63,6 +63,14 @@ public class EightBitRegister implements Register {
         this.data &= b;
     }
 
+    public void orByte(byte b) {
+        this.data |= b;
+    }
+
+    public void xorByte(byte b) {
+        this.data ^= b;
+    }
+
     public boolean signBit() {
         return this.data < 0;
     }

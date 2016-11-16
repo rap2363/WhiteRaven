@@ -58,7 +58,7 @@ public class CPU {
         List<Instruction> instructions = new LinkedList<Instruction>(
             Arrays.asList(
                     new AddWithCarry(),
-                    new And(),
+                    new LogicalAND(),
                     new ArithmeticShiftLeft(),
                     new BranchIfCarryClear(),
                     new BranchIfCarrySet(),
@@ -80,10 +80,11 @@ public class CPU {
                     new DecrementMemory(),
                     new DecrementX(),
                     new DecrementY(),
-//                    new ExclusiveOr(),
+                    new LogicalXOR(),
                     new IncrementMemory(),
                     new IncrementX(),
-                    new IncrementY()
+                    new IncrementY(),
+                    new LogicalOR()
             )
         );
 
