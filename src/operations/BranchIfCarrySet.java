@@ -1,6 +1,6 @@
 package operations;
 
-import snes.CPU;
+import nes.CPU;
 
 class BranchIfCarrySetRelative extends Branch {
     public BranchIfCarrySetRelative(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {

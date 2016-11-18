@@ -1,6 +1,6 @@
 package operations;
 
-import snes.CPU;
+import nes.CPU;
 
 abstract class RotateLeftOperationBase extends Operation {
 

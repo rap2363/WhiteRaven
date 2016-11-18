@@ -1,10 +1,10 @@
-package snes;
+package nes;
 
 public interface Register {
 
     /**
      * Read the value as an unsigned integer from the register
-     * 
+     *
      * @param unsignedValue
      * @return
      */
@@ -12,7 +12,7 @@ public interface Register {
 
     /**
      * Write an integer value to this register
-     * 
+     *
      * @param unsignedValue
      */
     public void write(int unsignedValue);
@@ -24,7 +24,7 @@ public interface Register {
 
     /**
      * Increment the register n times
-     * 
+     *
      * @param n
      */
     default public void incrementBy(int n) {
@@ -40,7 +40,7 @@ public interface Register {
 
     /**
      * Decrement the register n times
-     * 
+     *
      * @param n
      */
     default public void decrementBy(int n) {

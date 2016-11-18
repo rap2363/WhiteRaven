@@ -1,6 +1,6 @@
 package operations;
 
-import snes.CPU;
+import nes.CPU;
 
 class ClearDecimalModeImplicit extends Operation {
 

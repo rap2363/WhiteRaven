@@ -1,6 +1,6 @@
 package operations;
 
-import snes.CPU;
+import nes.CPU;
 
 class BranchIfNotEqualRelative extends Branch {
     public BranchIfNotEqualRelative(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {

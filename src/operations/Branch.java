@@ -1,6 +1,6 @@
 package operations;
 
-import snes.CPU;
+import nes.CPU;
 
 public abstract class Branch extends Operation {
     public Branch(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
@@ -31,7 +31,7 @@ public abstract class Branch extends Operation {
     /**
      * To be implemented in base Branch instructions. This is the condition that
      * is checked before executing a branch
-     * 
+     *
      * @return
      */
     protected abstract boolean branchCondition(CPU cpu);

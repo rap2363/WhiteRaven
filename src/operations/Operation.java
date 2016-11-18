@@ -1,6 +1,6 @@
 package operations;
 
-import snes.CPU;
+import nes.CPU;
 
 public abstract class Operation {
     public AddressingMode addressingMode;
@@ -17,7 +17,7 @@ public abstract class Operation {
 
     /**
      * Execute the instruction on the CPU
-     * 
+     *
      * @param cpu
      */
     public abstract void execute(CPU cpu);

@@ -1,6 +1,6 @@
 package operations;
 
-import snes.CPU;
+import nes.CPU;
 
 class BranchIfMinusRelative extends Branch {
     public BranchIfMinusRelative(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {

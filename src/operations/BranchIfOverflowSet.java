@@ -1,6 +1,6 @@
 package operations;
 
-import snes.CPU;
+import nes.CPU;
 
 class BranchIfOverflowSetRelative extends Branch {
     public BranchIfOverflowSetRelative(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {

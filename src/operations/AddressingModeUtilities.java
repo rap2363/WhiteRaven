@@ -1,6 +1,6 @@
 package operations;
 
-import snes.CPU;
+import nes.CPU;
 
 /**
  * Stateless utilities class that is used in conjunction with Operations to

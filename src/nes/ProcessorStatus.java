@@ -1,4 +1,4 @@
-package snes;
+package nes;
 
 public class ProcessorStatus extends EightBitRegister {
 

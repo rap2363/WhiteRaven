@@ -1,4 +1,4 @@
-package snes;
+package nes;
 
 import java.util.Arrays;
 
@@ -10,7 +10,7 @@ public abstract class MemoryMap {
 
     /**
      * Read a byte from an address in memory
-     * 
+     *
      * @param address
      * @return
      */
@@ -20,7 +20,7 @@ public abstract class MemoryMap {
 
     /**
      * Read a number of bytes from memory starting at an address
-     * 
+     *
      * @param address
      * @param numBytes
      * @return
@@ -31,7 +31,7 @@ public abstract class MemoryMap {
 
     /**
      * Writes one byte to an address in memory
-     * 
+     *
      * @param address
      * @param byteToWrite
      */
@@ -41,7 +41,7 @@ public abstract class MemoryMap {
 
     /**
      * Writes a number of bytes to memory starting at an address
-     * 
+     *
      * @param address
      * @param numBytes
      * @param bytesToWrite
@@ -54,7 +54,7 @@ public abstract class MemoryMap {
 
     /**
      * Returns the size of the memory map in number of bytes
-     * 
+     *
      * @return
      */
     public int size() {

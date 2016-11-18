@@ -1,4 +1,4 @@
-package snes;
+package nes;
 
 import operations.Utilities;
 
