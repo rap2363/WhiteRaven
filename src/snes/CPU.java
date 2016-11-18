@@ -97,7 +97,22 @@ public class CPU {
 //                    new PullAccumulator(),
 //                    new PullProcessorStatus(),
                     new RotateLeft(),
-                    new RotateRight()
+                    new RotateRight(),
+//                    new ReturnFromInterrupt(),
+//                    new ReturnFromSubroutine(),
+                    new SubtractWithCarry(),
+                    new SetCarry(),
+                    new SetDecimalMode(),
+                    new SetInterruptDisable(),
+                    new StoreAccumulator(),
+                    new StoreX(),
+                    new StoreY(),
+                    new TransferAccumulatorX(),
+                    new TransferAccumulatorY(),
+                    new TransferStackPointerX(),
+                    new TransferXAccumulator(),
+                    new TransferXStackPointer(),
+                    new TransferYAccumulator()
             )
         );
 
@@ -157,28 +172,21 @@ public class CPU {
 
     public static void main(String[] args) {
         CPU cpu = new CPU();
-        cpu.P.write(0x30);
+        cpu.P.write(0x31);
         cpu.PC.write(0x0603);
-        cpu.memory.write(0x0306, (byte) 0x00);
         cpu.X.write(0x01);
-        cpu.memory.write(0x32, (byte) 0xCE);
-        cpu.memory.write(0x0603, (byte) 0xCE);
-        cpu.memory.write(0x0604, (byte) 0x03);
-        cpu.memory.write(0x0605, (byte) 0x06);
-        cpu.memory.write(0x0606, (byte) 0xCA);
-        cpu.memory.write(0x0607, (byte) 0xCA);
-        cpu.memory.write(0x0608, (byte) 0xCA);
 
-        cpu.A.write(0xdf);
+        cpu.memory.write(0x0603, (byte) 0xA9);
+        cpu.memory.write(0x0604, (byte) 0x80);
+        cpu.memory.write(0x0605, (byte) 0xE9);
+        cpu.memory.write(0x0606, (byte) 0x7f);
+        System.out.println(cpu.state());
 
         try {
-            System.out.println(cpu.state());
-            cpu.fetchAndExecute();
-            System.out.println(cpu.state());
-            cpu.fetchAndExecute();
-            System.out.println(cpu.state());
-            cpu.fetchAndExecute();
-            System.out.println(cpu.state());
+            for (int i = 0; i < 2; i++) {
+                cpu.fetchAndExecute();
+                System.out.println(cpu.state());
+            }
         } catch (UnimplementedOpcode e) {
             System.out.println(e.getMessage());
         }

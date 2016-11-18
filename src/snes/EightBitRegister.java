@@ -24,6 +24,10 @@ public class EightBitRegister implements Register {
         this.data = (byte) value;
     }
 
+    public void writeByte(byte value) {
+        this.data = value;
+    }
+
     @Override
     public void increment() {
         if (this.data == (byte) MAX_EIGHT_BIT_VALUE) {

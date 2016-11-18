@@ -16,7 +16,7 @@ abstract class LoadAccumulatorOperationBase extends Operation {
     @Override
     public void execute(CPU cpu) {
         byte value = AddressingModeUtilities.getValue(addressingMode, cpu, cpu.readAfterPC(numBytes - 1));
-        cpu.A.write(value);
+        cpu.A.writeByte(value);
 
         // Set the processor status flags
         if (cpu.A.read() == 0) {

@@ -16,7 +16,7 @@ abstract class LoadXOperationBase extends Operation {
     @Override
     public void execute(CPU cpu) {
         byte value = AddressingModeUtilities.getValue(addressingMode, cpu, cpu.readAfterPC(numBytes - 1));
-        cpu.X.write(value);
+        cpu.X.writeByte(value);
 
         // Set the processor status flags
         if (cpu.X.read() == 0) {
