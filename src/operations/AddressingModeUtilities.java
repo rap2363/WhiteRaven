@@ -27,6 +27,7 @@ public final class AddressingModeUtilities {
             case Absolute:  return getAddressAbsolute(bytes);
             case AbsoluteX: return getAddressAbsoluteX(cpu, bytes);
             case AbsoluteY: return getAddressAbsoluteY(cpu, bytes);
+            case Indirect:  return getAddressAbsolute(bytes);
             case IndirectX: return getAddressIndirectX(cpu, bytes);
             case IndirectY: return getAddressIndirectY(cpu, bytes);
         }
@@ -157,7 +158,7 @@ public final class AddressingModeUtilities {
      * @return
      */
     private static int getAddressAbsolute(byte[] bytes) {
-        return Utilities.toUnsignedValue(bytes[0], bytes[1]);
+        return Utilities.toUnsignedValue(bytes[1], bytes[0]);
     }
 
     /**
@@ -204,7 +205,7 @@ public final class AddressingModeUtilities {
      * @return
      */
     private static int getAddressAbsoluteY(CPU cpu, byte[] bytes) {
-        return Utilities.addUnsignedByteToInt(Utilities.toUnsignedValue(bytes[0], bytes[1]), cpu.Y.readAsByte());
+        return Utilities.addUnsignedByteToInt(Utilities.toUnsignedValue(bytes[1], bytes[0]), cpu.Y.readAsByte());
     }
 
     /**

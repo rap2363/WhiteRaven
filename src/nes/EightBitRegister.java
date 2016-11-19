@@ -30,20 +30,12 @@ public class EightBitRegister implements Register {
 
     @Override
     public void increment() {
-        if (this.data == (byte) MAX_EIGHT_BIT_VALUE) {
-            this.data = 0;
-        } else {
-            this.data++;
-        }
+        this.data++;
     }
 
     @Override
     public void decrement() {
-        if (this.data == 0) {
-            this.data = (byte) MAX_EIGHT_BIT_VALUE;
-        } else {
-            this.data--;
-        }
+        this.data--;
     }
 
     @Override

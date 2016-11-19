@@ -15,9 +15,10 @@ abstract class JumpOperationBase extends Operation {
      */
     @Override
     public void execute(CPU cpu) {
-        byte value = AddressingModeUtilities.getValue(addressingMode, cpu, cpu.readAfterPC(numBytes - 1));
-
-        cpu.PC.write(value);
+        int targetAddress = AddressingModeUtilities.getAddress(addressingMode, cpu, cpu.readAfterPC(numBytes - 1));
+        byte lsb = cpu.memory.read(targetAddress);
+        byte msb = cpu.memory.read(targetAddress + 1);
+        cpu.PC.write(msb, lsb);
 
         cpu.cycles += cycles;
     }

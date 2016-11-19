@@ -20,6 +20,10 @@ public class SixteenBitRegister implements Register {
         this.data = value & 0xFFFF;
     }
 
+    public void write(byte msb, byte lsb) {
+        this.data = Utilities.toUnsignedValue(msb, lsb);
+    }
+
     @Override
     public void increment() {
         if (this.data == MAX_SIXTEEN_BIT_VALUE) {
@@ -52,6 +56,24 @@ public class SixteenBitRegister implements Register {
         } else if (this.data > MAX_SIXTEEN_BIT_VALUE) {
             this.data -= MAX_SIXTEEN_BIT_VALUE;
         }
+    }
+
+    /**
+     * Read and return the most significant byte
+     *
+     * @return
+     */
+    public byte readMSB() {
+        return (byte) (this.data >> 8);
+    }
+
+    /**
+     * Read and return the least significant byte
+     *
+     * @return
+     */
+    public byte readLSB() {
+        return (byte) this.data;
     }
 
     public String toString() {
