@@ -53,9 +53,9 @@ public class CPU {
         this.P = new ProcessorStatus();
         this.cycles = 0;
 
-        operationMap = new HashMap<Byte, Operation>();
+        operationMap = new HashMap<>();
 
-        List<Instruction> instructions = new LinkedList<Instruction>(
+        List<Instruction> instructions = new LinkedList<>(
             Arrays.asList(
                     new AddWithCarry(),
                     new LogicalAND(),
@@ -85,21 +85,21 @@ public class CPU {
                     new IncrementX(),
                     new IncrementY(),
                     new Jump(),
-//                    new JumpToSubroutine(),
+                    new JumpToSubroutine(),
                     new LoadAccumulator(),
                     new LoadX(),
                     new LoadY(),
                     new LogicalShiftRight(),
                     new NoOperation(),
                     new LogicalOR(),
-//                    new PushAccumulator(),
-//                    new PushProcessorStatus(),
-//                    new PullAccumulator(),
-//                    new PullProcessorStatus(),
+                    new PushAccumulator(),
+                    new PushProcessorStatus(),
+                    new PullAccumulator(),
+                    new PullProcessorStatus(),
                     new RotateLeft(),
                     new RotateRight(),
-//                    new ReturnFromInterrupt(),
-//                    new ReturnFromSubroutine(),
+                    new ReturnFromInterrupt(),
+                    new ReturnFromSubroutine(),
                     new SubtractWithCarry(),
                     new SetCarry(),
                     new SetDecimalMode(),
@@ -144,6 +144,23 @@ public class CPU {
     public void pushOntoStack(byte value) {
         memory.write(SP.read() + CPUMemory.NES_CPU_STACK_OFFSET, value);
         SP.decrement();
+    }
+
+    /**
+     * Helper method to specifically push the PC onto the stack (MSB then LSB).
+     */
+    public void pushPCOntoStack() {
+        pushOntoStack(PC.readMSB());
+        pushOntoStack(PC.readLSB());
+    }
+
+    /**
+     * Helper method to specifically pull the PC from the stack (LSB then MSB).
+     */
+    public void pullPCFromStack() {
+        byte lsb = pullFromStack();
+        byte msb = pullFromStack();
+        PC.write(msb, lsb);
     }
 
     /**

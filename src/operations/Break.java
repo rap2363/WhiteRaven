@@ -16,8 +16,8 @@ class BreakImplicit extends Operation {
      */
     @Override
     public void execute(CPU cpu) {
-        cpu.pushOntoStack(cpu.PC.readLSB());
-        cpu.pushOntoStack(cpu.PC.readMSB());
+        cpu.PC.incrementBy(numBytes);
+        cpu.pushPCOntoStack();
         cpu.pushOntoStack(cpu.P.readAsByte());
 
         cpu.PC.write(cpu.memory.read(0xFFFF), cpu.memory.read(0xFFFE));
