@@ -117,7 +117,14 @@ public class CPU {
         );
 
         for (Instruction instruction : instructions) {
+            System.out.println(instruction.getClass().toString().split(" ")[1] + ": " + instruction.getAssemblyInstructionName());
+            System.out.printf("%s\t\t%s\t\t%s\t%s\n", "Mode", "Opcode", "Bytes", "Cycles" );
             for (Operation operation : instruction.getOperations()) {
+                System.out.printf("%s\t%s\t\t%d\t\t%d\n",
+                        operation.addressingMode.toString(),
+                        String.format("0x%02x", operation.opcode),
+                        operation.numBytes,
+                        operation.cycles);
                 operationMap.put(operation.opcode, operation);
             }
         }

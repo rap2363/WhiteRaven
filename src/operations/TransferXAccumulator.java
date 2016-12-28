@@ -37,7 +37,7 @@ class TransferXAccumulatorImplicit extends Operation {
 public class TransferXAccumulator extends Instruction {
 
     public TransferXAccumulator() {
-        this.assemblyInstructionName = "TSX";
+        this.assemblyInstructionName = "TXA";
         this.addOperation(new TransferXAccumulatorImplicit(AddressingMode.Implicit, (byte) 0x8A, 1, 2));
     }
 }

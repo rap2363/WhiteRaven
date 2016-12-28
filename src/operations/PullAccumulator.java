@@ -36,6 +36,6 @@ public class PullAccumulator extends Instruction {
 
     public PullAccumulator() {
         this.assemblyInstructionName = "PLA";
-        this.addOperation(new PullAccumulatorImplicit(AddressingMode.Implicit, (byte) 0x68, 1, 3));
+        this.addOperation(new PullAccumulatorImplicit(AddressingMode.Implicit, (byte) 0x68, 1, 4));
     }
 }

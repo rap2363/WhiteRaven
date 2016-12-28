@@ -45,7 +45,7 @@ public class StoreY extends Instruction {
     public StoreY() {
         this.assemblyInstructionName = "STY";
         this.addOperation(new StoreYZeroPage(AddressingMode.ZeroPage, (byte) 0x84, 2, 3));
-        this.addOperation(new StoreYZeroPageX(AddressingMode.ZeroPageY, (byte) 0x94, 2, 4));
+        this.addOperation(new StoreYZeroPageX(AddressingMode.ZeroPageX, (byte) 0x94, 2, 4));
         this.addOperation(new StoreYAbsolute(AddressingMode.Absolute, (byte) 0x8C, 3, 4));
     }
 }
