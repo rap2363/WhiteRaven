@@ -8,18 +8,18 @@ import java.util.List;
 import operations.*;
 
 class CPUMemory extends MemoryMap {
-    private static final int NES_CPU_MEMORY_SIZE = 0x10000;
+    public static final int NES_CPU_MEMORY_SIZE = 0x10000;
 
-    private static final int NES_CPU_ZP_OFFSET = 0x0;
-    private static final int NES_CPU_STACK_OFFSET = 0x0100;
-    private static final int NES_CPU_RAM_OFFSET = 0x0200;
+    public static final int NES_CPU_ZP_OFFSET = 0x0;
+    public static final int NES_CPU_STACK_OFFSET = 0x0100;
+    public static final int NES_CPU_RAM_OFFSET = 0x0200;
 
-    private static final int NES_CPU_IO_OFFSET = 0x2000;
-    private static final int NES_CPU_EXPANSION_OFFSET = 0x4020;
-    private static final int NES_CPU_SRAM_OFFSET = 0x6000;
+    public static final int NES_CPU_IO_OFFSET = 0x2000;
+    public static final int NES_CPU_EXPANSION_OFFSET = 0x4020;
+    public static final int NES_CPU_SRAM_OFFSET = 0x6000;
 
-    private static final int NES_CPU_PRG_LOWER = 0x8000;
-    private static final int NES_CPU_PRG_UPPER = 0xC000;
+    public static final int NES_CPU_PRG_LOWER = 0x8000;
+    public static final int NES_CPU_PRG_UPPER = 0xC000;
 
     CPUMemory() {
         this.memory = new byte[NES_CPU_MEMORY_SIZE];
@@ -53,9 +53,9 @@ public class CPU {
         this.P = new ProcessorStatus();
         this.cycles = 0;
 
-        operationMap = new HashMap<Byte, Operation>();
+        operationMap = new HashMap<>();
 
-        List<Instruction> instructions = new LinkedList<Instruction>(
+        List<Instruction> instructions = new LinkedList<>(
             Arrays.asList(
                     new AddWithCarry(),
                     new LogicalAND(),
@@ -67,7 +67,7 @@ public class CPU {
                     new BranchIfMinus(),
                     new BranchIfNotEqual(),
                     new BranchIfPositive(),
-    //              new Break(),
+                    new Break(),
                     new BranchIfOverflowClear(),
                     new BranchIfOverflowSet(),
                     new ClearCarryFlag(),
@@ -85,21 +85,21 @@ public class CPU {
                     new IncrementX(),
                     new IncrementY(),
                     new Jump(),
-//                    new JumpToSubroutine(),
+                    new JumpToSubroutine(),
                     new LoadAccumulator(),
                     new LoadX(),
                     new LoadY(),
                     new LogicalShiftRight(),
                     new NoOperation(),
                     new LogicalOR(),
-//                    new PushAccumulator(),
-//                    new PushProcessorStatus(),
-//                    new PullAccumulator(),
-//                    new PullProcessorStatus(),
+                    new PushAccumulator(),
+                    new PushProcessorStatus(),
+                    new PullAccumulator(),
+                    new PullProcessorStatus(),
                     new RotateLeft(),
                     new RotateRight(),
-//                    new ReturnFromInterrupt(),
-//                    new ReturnFromSubroutine(),
+                    new ReturnFromInterrupt(),
+                    new ReturnFromSubroutine(),
                     new SubtractWithCarry(),
                     new SetCarry(),
                     new SetDecimalMode(),
@@ -139,6 +139,41 @@ public class CPU {
     }
 
     /**
+     * Push a byte onto the stack (this decrements the stack pointer)
+     */
+    public void pushOntoStack(byte value) {
+        memory.write(SP.read() + CPUMemory.NES_CPU_STACK_OFFSET, value);
+        SP.decrement();
+    }
+
+    /**
+     * Helper method to specifically push the PC onto the stack (MSB then LSB).
+     */
+    public void pushPCOntoStack() {
+        pushOntoStack(PC.readMSB());
+        pushOntoStack(PC.readLSB());
+    }
+
+    /**
+     * Helper method to specifically pull the PC from the stack (LSB then MSB).
+     */
+    public void pullPCFromStack() {
+        byte lsb = pullFromStack();
+        byte msb = pullFromStack();
+        PC.write(msb, lsb);
+    }
+
+    /**
+     * Pull a byte from the stack (this increments the stack pointer)
+     *
+     * @return
+     */
+    public byte pullFromStack() {
+        SP.increment();
+        return memory.read(SP.read() + CPUMemory.NES_CPU_STACK_OFFSET);
+    }
+
+    /**
      * Read n bytes starting after the PC. For example, if PC=$0320,
      * readAfterPC(3), would read in the bytes located at $0321, $0322, and
      * $0323.
@@ -172,18 +207,25 @@ public class CPU {
 
     public static void main(String[] args) {
         CPU cpu = new CPU();
-        cpu.P.write(0x31);
-        cpu.PC.write(0x0603);
-        cpu.X.write(0x01);
+        cpu.P.write(0x30);
+        cpu.SP.write(0xFF);
+        cpu.PC.write(0x0600);
 
-        cpu.memory.write(0x0603, (byte) 0xA9);
-        cpu.memory.write(0x0604, (byte) 0x80);
-        cpu.memory.write(0x0605, (byte) 0xE9);
-        cpu.memory.write(0x0606, (byte) 0x7f);
+        cpu.memory.write(0x0600, (byte) 0xA9);
+        cpu.memory.write(0x0601, (byte) 0x01);
+        cpu.memory.write(0x0602, (byte) 0x85);
+        cpu.memory.write(0x0603, (byte) 0xf0);
+        cpu.memory.write(0x0604, (byte) 0xa9);
+        cpu.memory.write(0x0605, (byte) 0xcc);
+        cpu.memory.write(0x0606, (byte) 0x85);
+        cpu.memory.write(0x0607, (byte) 0xf1);
+        cpu.memory.write(0x0608, (byte) 0x6c);
+        cpu.memory.write(0x0609, (byte) 0xf0);
+        cpu.memory.write(0x060a, (byte) 0x00);
+
         System.out.println(cpu.state());
-
         try {
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < 5; i++) {
                 cpu.fetchAndExecute();
                 System.out.println(cpu.state());
             }
