@@ -21,9 +21,7 @@ class JumpToSubroutineImplicit extends Operation {
         cpu.pushPCOntoStack();
         cpu.pushOntoStack(cpu.P.readAsByte());
 
-        byte lsb = cpu.memory.read(targetAddress);
-        byte msb = cpu.memory.read(targetAddress + 1);
-        cpu.PC.write(msb, lsb);
+        cpu.PC.write(targetAddress);
 
         cpu.cycles += cycles;
     }

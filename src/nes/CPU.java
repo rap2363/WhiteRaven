@@ -8,21 +8,61 @@ import java.util.List;
 import operations.*;
 
 class CPUMemory extends MemoryMap {
-    public static final int NES_CPU_MEMORY_SIZE = 0x10000;
+    private static final int MEMORY_SIZE = 0x10000;
+    private static final int RAM_OFFSET = 0x2000;
+    private static final int IO_REGISTER_OFFSET = 0x4000;
 
-    public static final int NES_CPU_ZP_OFFSET = 0x0;
-    public static final int NES_CPU_STACK_OFFSET = 0x0100;
-    public static final int NES_CPU_RAM_OFFSET = 0x0200;
-
-    public static final int NES_CPU_IO_OFFSET = 0x2000;
-    public static final int NES_CPU_EXPANSION_OFFSET = 0x4020;
-    public static final int NES_CPU_SRAM_OFFSET = 0x6000;
-
-    public static final int NES_CPU_PRG_LOWER = 0x8000;
-    public static final int NES_CPU_PRG_UPPER = 0xC000;
+    public static final int STACK_OFFSET = 0x0100;
+    public static final int PRG_LOWER_BANK = 0x8000;
+    public static final int PRG_UPPER_BANK = 0xC000;
+    public static final int PPU_ADDRESS = 0x2006;
+    public static final int PPU_DATA = 0x2007;
+    public static final int DMA_REGISTER = 0x4014;
 
     CPUMemory() {
-        this.memory = new byte[NES_CPU_MEMORY_SIZE];
+        this.memory = new byte[MEMORY_SIZE];
+    }
+
+    /**
+     * Read a byte from memory (implemented with memory mirrors)
+     *
+     * @param address
+     * @return
+     */
+    @Override
+    public byte read(int address) {
+        // RAM mirrored every 2 kiB
+        if (address < RAM_OFFSET) {
+            return memory[address % 0x0800];
+        }
+
+        // I/O registers mirrored (8 I/O registers total)
+        if (address < IO_REGISTER_OFFSET) {
+            return memory[address % 0x0008];
+        }
+
+        return memory[address];
+    }
+
+    /**
+     * Write a byte into memory (implemented with memory mirrors)
+     *
+     * @param address
+     * @param value
+     */
+    @Override
+    public void write(int address, byte value) {
+        // RAM mirrored every 2 kiB
+        if (address < RAM_OFFSET) {
+            memory[address % 0x0800] = value;
+        }
+
+        // I/O registers mirrored (8 I/O registers total)
+        if (address < IO_REGISTER_OFFSET) {
+            memory[address % 0x0008] = value;
+        }
+
+        memory[address] = value;
     }
 }
 
@@ -42,6 +82,7 @@ public class CPU {
     public long cycles;
 
     private HashMap<Byte, Operation> operationMap;
+    private Interrupt currentInterrupt;
 
     CPU() {
         this.memory = new CPUMemory();
@@ -117,17 +158,26 @@ public class CPU {
         );
 
         for (Instruction instruction : instructions) {
-            System.out.println(instruction.getClass().toString().split(" ")[1] + ": " + instruction.getAssemblyInstructionName());
-            System.out.printf("%s\t\t%s\t\t%s\t%s\n", "Mode", "Opcode", "Bytes", "Cycles" );
+//            System.out.println(instruction.getClass().toString().split(" ")[1] + ": " + instruction.getAssemblyInstructionName());
+//            System.out.printf("%s\t\t%s\t\t%s\t%s\n", "Mode", "Opcode", "Bytes", "Cycles" );
             for (Operation operation : instruction.getOperations()) {
-                System.out.printf("%s\t%s\t\t%d\t\t%d\n",
-                        operation.addressingMode.toString(),
-                        String.format("0x%02x", operation.opcode),
-                        operation.numBytes,
-                        operation.cycles);
+//                System.out.printf("%s\t%s\t\t%d\t\t%d\n",
+//                        operation.addressingMode.toString(),
+//                        String.format("0x%02x", operation.opcode),
+//                        operation.numBytes,
+//                        operation.cycles);
                 operationMap.put(operation.opcode, operation);
             }
         }
+
+        // Initial state
+        P.write(0x34);
+        SP.write(0xFD);
+        A.write(0x0);
+        X.write(0x0);
+        Y.write(0x0);
+
+        currentInterrupt = Interrupt.RESET;
     }
 
     public String state() {
@@ -146,10 +196,72 @@ public class CPU {
     }
 
     /**
+     * This method is called externally (by the PPU or other things). It automatically handles interrupt priority.
+     *
+     */
+    public void triggerInterrupt(Interrupt interrupt) {
+        if (this.currentInterrupt.ordinal() < interrupt.ordinal()) {
+            this.currentInterrupt = interrupt;
+        }
+    }
+
+    /**
+     * Should we ignore the current interrupt?
+     *
+     * @return
+     */
+    private boolean shouldIgnoreInterrupt() {
+        return this.currentInterrupt == Interrupt.NONE
+                || (this.currentInterrupt == Interrupt.IRQ && this.P.interruptDisableFlag());
+    }
+
+    /**
+     * Handle an interrupt. This is called internally during a fetchAndExecute() and takes the following steps:
+     *
+     * 1. Check if we should ignore the interrupt, if we should, just exit quickly. Otherwise:
+     * 2. Push the PC and the status register onto the stack
+     * 3. Set the interrupt disable flag
+     * 4. Load the address of the interrupt handling routine (somewhere in 0xFFFA-0xFFFF)
+     *
+     */
+    private void handleInterrupt() {
+        if (shouldIgnoreInterrupt()) {
+            return;
+        }
+
+        pushPCOntoStack();
+        pushOntoStack(this.P.readAsByte());
+        this.P.setInterruptDisableFlag();
+
+        int targetAddress;
+
+        switch (this.currentInterrupt) {
+            case IRQ:
+                targetAddress = 0xFFFE;
+                break;
+            case NMI:
+                targetAddress = 0xFFFA;
+                break;
+            case RESET:
+                targetAddress = 0xFFFC;
+                break;
+            default: // we shouldn't get here!
+                System.err.println("Bad state!");
+                return;
+        }
+
+        byte lsb = this.memory.read(targetAddress);
+        byte msb = this.memory.read(targetAddress + 1);
+
+        PC.write(msb, lsb);
+        this.currentInterrupt = Interrupt.NONE;
+    }
+
+    /**
      * Push a byte onto the stack (this decrements the stack pointer)
      */
     public void pushOntoStack(byte value) {
-        memory.write(SP.read() + CPUMemory.NES_CPU_STACK_OFFSET, value);
+        memory.write(SP.read() + CPUMemory.STACK_OFFSET, value);
         SP.decrement();
     }
 
@@ -177,7 +289,7 @@ public class CPU {
      */
     public byte pullFromStack() {
         SP.increment();
-        return memory.read(SP.read() + CPUMemory.NES_CPU_STACK_OFFSET);
+        return memory.read(SP.read() + CPUMemory.STACK_OFFSET);
     }
 
     /**
@@ -204,12 +316,27 @@ public class CPU {
      * @throws UnimplementedOpcode
      */
     public void fetchAndExecute() throws UnimplementedOpcode {
+        handleInterrupt();
+
         byte opcode = this.memory.read(this.PC.read());
         Operation op = this.operationMap.get(opcode);
         if (op == null) {
             throw new UnimplementedOpcode("Unimplemented instruction: " + String.format("0x%02x", opcode));
         }
         op.execute(this);
+    }
+
+    /**
+     * Load a cartridge into main memory
+     *
+     * @param cartridge
+     */
+    public void loadCartridge(Cartridge cartridge) {
+        // Hard coded (Refactor!)
+        for (int i = 0; i < 0x4000; i++) {
+            this.memory.write(CPUMemory.PRG_LOWER_BANK + i, (byte) cartridge.getPRGRomBank(0)[i]);
+            this.memory.write(CPUMemory.PRG_UPPER_BANK + i, (byte) cartridge.getPRGRomBank(0)[i]);
+        }
     }
 
     public static void main(String[] args) {
