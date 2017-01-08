@@ -24,7 +24,7 @@ public class ClearInterruptDisable extends Instruction {
 
     public ClearInterruptDisable() {
         this.assemblyInstructionName = "CLI";
-        this.addOperation(new ClearInterruptDisableImplicit(AddressingMode.Implicit, (byte) 0xD8, 1, 2));
+        this.addOperation(new ClearInterruptDisableImplicit(AddressingMode.Implicit, (byte) 0x58, 1, 2));
     }
 
 }

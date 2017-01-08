@@ -1,33 +1,32 @@
 package nes;
 
-public interface Register {
+interface Register {
 
     /**
      * Read the value as an unsigned integer from the register
      *
-     * @param unsignedValue
      * @return
      */
-    public int read();
+    int read();
 
     /**
      * Write an integer value to this register
      *
      * @param unsignedValue
      */
-    public void write(int unsignedValue);
+    void write(int unsignedValue);
 
     /**
      * Increment the register
      */
-    public void increment();
+    void increment();
 
     /**
      * Increment the register n times
      *
      * @param n
      */
-    default public void incrementBy(int n) {
+    default void incrementBy(int n) {
         for (int i = 0; i < n; i++) {
             increment();
         }
@@ -36,14 +35,14 @@ public interface Register {
     /**
      * Decrement the register
      */
-    public void decrement();
+    void decrement();
 
     /**
      * Decrement the register n times
      *
      * @param n
      */
-    default public void decrementBy(int n) {
+    default void decrementBy(int n) {
         for (int i = 0; i < n; i++) {
             decrement();
         }
@@ -54,12 +53,12 @@ public interface Register {
      *
      * @param n
      */
-    public void shiftLeft(int n);
+    void shiftLeft(int n);
 
     /**
      * Bit shift the register value right by n
      *
      * @param n
      */
-    public void shiftRight(int n);
+    void shiftRight(int n);
 }

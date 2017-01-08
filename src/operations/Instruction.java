@@ -18,4 +18,6 @@ public abstract class Instruction {
     public List<Operation> getOperations() {
         return this.operations;
     }
+
+    public String getAssemblyInstructionName() { return assemblyInstructionName; }
 }

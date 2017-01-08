@@ -1,7 +1,5 @@
 package nes;
 
-import java.util.Arrays;
-
 /**
  * This abstract class can read/write to contiguous blocks of memory.
  */
@@ -14,41 +12,39 @@ public abstract class MemoryMap {
      * @param address
      * @return
      */
-    public byte read(int address) {
-        return memory[address];
-    }
+    public abstract byte read(int address);
 
     /**
-     * Read a number of bytes from memory starting at an address
+     * Read a number of bytes from memory starting at an address.
      *
      * @param address
      * @param numBytes
      * @return
      */
-    public byte[] read(int address, int numBytes) {
-        return Arrays.copyOfRange(memory, address, address + numBytes);
+    public final byte[] read(int address, int numBytes) {
+        byte[] readBytes = new byte[numBytes];
+        for (int i = 0; i < numBytes; i++) {
+            readBytes[i] = this.read(address + i);
+        }
+        return readBytes;
     }
 
     /**
-     * Writes one byte to an address in memory
+     * Writes one byte to an address in memory.
      *
      * @param address
-     * @param byteToWrite
      */
-    public void write(int address, byte value) {
-        memory[address] = value;
-    }
+    public abstract void write(int address, byte value);
 
     /**
-     * Writes a number of bytes to memory starting at an address
+     * Writes a number of bytes to memory starting at an address in memory.
      *
      * @param address
-     * @param numBytes
-     * @param bytesToWrite
+     * @param values
      */
-    public void write(int address, byte[] values) {
+    public final void write(int address, byte[] values) {
         for (int i = 0; i < values.length; i++) {
-            memory[address + i] = values[i];
+            this.write(address + i, values[i]);
         }
     }
 
