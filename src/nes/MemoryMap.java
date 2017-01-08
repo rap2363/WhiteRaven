@@ -1,7 +1,5 @@
 package nes;
 
-import java.util.Arrays;
-
 /**
  * This abstract class can read/write to contiguous blocks of memory.
  */
