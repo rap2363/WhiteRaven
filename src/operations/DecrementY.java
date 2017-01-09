@@ -15,8 +15,8 @@ class DecrementYImplicit extends Operation {
      */
     @Override
     public void execute(CPU cpu) {
-        cpu.X.addByte((byte) -1, false);
-        byte value = cpu.X.readAsByte();
+        cpu.Y.addByte((byte) -1, false);
+        byte value = cpu.Y.readAsByte();
 
         // Set the processor status flags
         if (value == 0) {

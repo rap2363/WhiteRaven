@@ -18,8 +18,9 @@ abstract class AddWithCarryOperationBase extends Operation {
     @Override
     public void execute(CPU cpu) {
         byte value = AddressingModeUtilities.getValue(addressingMode, cpu, cpu.readAfterPC(numBytes - 1));
+        byte oldAValue = cpu.A.readAsByte();
         boolean carryFlag = cpu.A.addByte(value, cpu.P.carryFlag());
-        boolean overflowFlag = Utilities.getOverflowFlag((byte) cpu.A.read(), value, carryFlag);
+        boolean overflowFlag = Utilities.getOverflowFlag(oldAValue, value, carryFlag);
 
         // Set the processor status flags
         if (overflowFlag) {

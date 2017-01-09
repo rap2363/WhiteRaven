@@ -96,4 +96,22 @@ public abstract class Utilities {
     public static boolean bitAt(byte b, int n) {
         return (bitShift(b, n) & (byte) 0x01) == (byte) 0x01;
     }
+
+    /**
+     * Return a nice hexadecimal representation of one byte
+     *
+     * @param b
+     * @return
+     */
+    public static String byteToString(byte b) {
+        return String.format("0x%02x", b);
+    }
+
+    public static String twoBytesToString(byte msb, byte lsb) {
+        return String.format("0x%02x%02x", msb, lsb);
+    }
+
+    public static String twoBytesToString(int x) {
+        return twoBytesToString((byte) (x >> 8), (byte) x);
+    }
 }

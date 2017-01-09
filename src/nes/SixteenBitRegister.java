@@ -77,7 +77,7 @@ public class SixteenBitRegister implements Register {
     }
 
     public String toString() {
-        return String.format("0x%02x%02x", this.data >> 8, this.data & 0x00FF);
+        return Utilities.twoBytesToString((byte) (this.data >> 8), (byte) (this.data & 0x00FF));
     }
 
     @Override

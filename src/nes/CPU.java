@@ -164,13 +164,14 @@ public class CPU {
         }
 
         // Initial state
-        P.write(0x34);
+        P.write(0x24);
         SP.write(0xFD);
         A.write(0x0);
         X.write(0x0);
         Y.write(0x0);
 
-        currentInterrupt = Interrupt.RESET;
+//        currentInterrupt = Interrupt.RESET;
+        currentInterrupt = Interrupt.NONE;
     }
 
     public String state() {
@@ -186,6 +187,27 @@ public class CPU {
         state += "    " + this.P + "\n";
 
         return state;
+    }
+
+    /**
+     * Returns the state in a single line like:
+     *
+     * C000 A:00 X:00 Y:00 P:24 SP:FD CYC: 0
+     * @return
+     */
+    public String singleLineState() {
+        String state = "";
+
+        state += Utilities.twoBytesToString(this.PC.read()) + "  ";
+        state += "A:" + this.A + " ";
+        state += "X:" + this.X + " ";
+        state += "Y:" + this.Y + " ";
+        state += "P:" + Utilities.byteToString(this.P.readAsByte()) + " ";
+        state += "SP:" + this.SP + " ";
+        state += "CYC:" + this.cycles + "\n";
+
+        return state;
+
     }
 
     /**
@@ -326,15 +348,14 @@ public class CPU {
      */
     public void loadCartridge(Cartridge cartridge) {
         // Hard coded (Refactor!)
-        for (int i = 0; i < 0x4000; i++) {
-            this.memory.write(CPUMemory.PRG_LOWER_BANK + i, (byte) cartridge.getPRGRomBank(0)[i]);
-            this.memory.write(CPUMemory.PRG_UPPER_BANK + i, (byte) cartridge.getPRGRomBank(0)[i]);
-        }
+        final byte[] bytes = cartridge.getPRGRomBank(0);
+        this.memory.write(CPUMemory.PRG_LOWER_BANK, bytes);
+        this.memory.write(CPUMemory.PRG_UPPER_BANK, bytes);
     }
 
     public static void main(String[] args) {
         CPU cpu = new CPU();
-        cpu.P.write(0x30);
+        cpu.P.write(0x20);
         cpu.SP.write(0xFF);
         cpu.PC.write(0x0600);
 

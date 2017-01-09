@@ -9,11 +9,14 @@ class PullProcessorStatusImplicit extends Operation {
     }
 
     /**
-     * Pull a byte from the stack into the processor status register.
+     * Pull a byte from the stack into the processor status register, while ignoring bits 4 and 5.
      */
     @Override
     public void execute(CPU cpu) {
-        cpu.P.writeByte(cpu.pullFromStack());
+        byte flagValues = (byte) (cpu.pullFromStack() & 0xcf);
+        byte nonFlagValues = (byte) (cpu.P.readAsByte() & 0x30);
+
+        cpu.P.writeByte((byte) (flagValues | nonFlagValues));
 
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;

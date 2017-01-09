@@ -11,7 +11,7 @@ class JumpToSubroutineImplicit extends Operation {
     /**
      * The JSR instruction loads a new address for the PC (the start of a subroutine), and pushes the PC and P onto
      * the stack. At the end of the subroutine, RTS (return from subroutine) is called, which restores the previously
-     * pushed PC and P registers.
+     * pushed PC. This does NOT push the Processor status onto the stack
      *
      */
     @Override
@@ -19,7 +19,6 @@ class JumpToSubroutineImplicit extends Operation {
         int targetAddress = AddressingModeUtilities.getAddress(addressingMode, cpu, cpu.readAfterPC(numBytes - 1));
         cpu.PC.incrementBy(numBytes);
         cpu.pushPCOntoStack();
-        cpu.pushOntoStack(cpu.P.readAsByte());
 
         cpu.PC.write(targetAddress);
 

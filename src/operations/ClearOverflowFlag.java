@@ -13,7 +13,7 @@ class ClearOverflowFlagImplicit extends Operation {
      */
     @Override
     public void execute(CPU cpu) {
-        cpu.P.clearCarryFlag();
+        cpu.P.clearOverflowFlag();
 
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;

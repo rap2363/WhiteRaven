@@ -1,6 +1,8 @@
 package nes;
 
-import java.io.File;
+import operations.Utilities;
+
+import java.nio.file.Paths;
 import java.util.Scanner;
 
 /**
@@ -12,8 +14,12 @@ public class Console {
 
     public Console() {
         cpu = new CPU();
-        cartridge = Cartridge.makeFrom(new File("/Users/rparanjpe/WhiteRaven/DonkeyKong.nes"));
+        cartridge = Cartridge.makeFrom(Paths.get("/Users/rparanjpe/WhiteRaven/nestest.nes"));
         cpu.loadCartridge(cartridge);
+        cpu.PC.write(0xC000);
+        for (int i = 0xBFFD; i < 0xC004; i++) {
+            System.out.println(Utilities.twoBytesToString(i) + ": " + Utilities.byteToString(cpu.memory.read(i)));
+        }
     }
 
     public static void main(String[] args) {
@@ -23,14 +29,14 @@ public class Console {
 
         while (true) {
             try {
-                scan.nextLine();
+//                scan.nextLine();
                 console.cpu.fetchAndExecute();
             } catch (UnimplementedOpcode unimplementedOpcode) {
                 unimplementedOpcode.printStackTrace();
                 return;
             }
-            System.out.println(console.cpu.state());
 
+            System.out.println(console.cpu.singleLineState());
         }
     }
 }

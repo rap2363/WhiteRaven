@@ -16,15 +16,19 @@ abstract class JumpOperationBase extends Operation {
     @Override
     public void execute(CPU cpu) {
         int targetAddress = AddressingModeUtilities.getAddress(addressingMode, cpu, cpu.readAfterPC(numBytes - 1));
-        byte lsb = cpu.memory.read(targetAddress);
-        byte msb = cpu.memory.read(targetAddress + 1);
 
-        // Explicitly replicate jump bug on the 6502 (this employs the page wrap around if we are on the boundary)
-        if (addressingMode == AddressingMode.Indirect && (targetAddress & 0xFF) == 0xFF) {
-            msb = cpu.memory.read(targetAddress & 0xFF00);
+        if (addressingMode == AddressingMode.Indirect) {
+            byte lsb = cpu.memory.read(targetAddress);
+            byte msb = cpu.memory.read(targetAddress + 1);
+
+            // Explicitly replicate jump bug on the 6502 (this employs the page wrap around if we are on the boundary)
+            if ((targetAddress & 0xFF) == 0xFF) {
+                msb = cpu.memory.read(targetAddress & 0xFF00);
+            }
+            cpu.PC.write(msb, lsb);
+        } else {
+            cpu.PC.write(targetAddress);
         }
-
-        cpu.PC.write(msb, lsb);
 
         cpu.cycles += cycles;
     }
