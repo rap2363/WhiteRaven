@@ -34,14 +34,12 @@ class CPUMemory extends MemoryMap {
         // RAM mirrored every 2 kiB
         if (address < RAM_OFFSET) {
             return memory[address % 0x0800];
+        } else if (address < IO_REGISTER_OFFSET) {
+            // I/O registers mirrored (8 I/O registers total)
+            return memory[IO_REGISTER_OFFSET + address % 0x0008];
         }
 
-        // I/O registers mirrored (8 I/O registers total)
-        if (address < IO_REGISTER_OFFSET) {
-            return memory[address % 0x0008];
-        }
-
-        return memory[address];
+        return memory[address % MEMORY_SIZE];
     }
 
     /**
@@ -52,17 +50,16 @@ class CPUMemory extends MemoryMap {
      */
     @Override
     public void write(int address, byte value) {
-        // RAM mirrored every 2 kiB
+        if (address % 0x0800 == 0)
         if (address < RAM_OFFSET) {
+            // RAM mirrored every 2 kiB
             memory[address % 0x0800] = value;
+        } else if (address < IO_REGISTER_OFFSET) {
+            // I/O registers mirrored (8 I/O registers total)
+            memory[IO_REGISTER_OFFSET + address % 0x0008] = value;
         }
 
-        // I/O registers mirrored (8 I/O registers total)
-        if (address < IO_REGISTER_OFFSET) {
-            memory[address % 0x0008] = value;
-        }
-
-        memory[address] = value;
+        memory[address % MEMORY_SIZE] = value;
     }
 }
 
@@ -276,7 +273,7 @@ public class CPU {
      * Push a byte onto the stack (this decrements the stack pointer)
      */
     public void pushOntoStack(byte value) {
-        memory.write(SP.read() + CPUMemory.STACK_OFFSET, value);
+        memory.write(Utilities.addUnsignedByteToInt(CPUMemory.STACK_OFFSET, SP.readAsByte()), value);
         SP.decrement();
     }
 
@@ -304,7 +301,7 @@ public class CPU {
      */
     public byte pullFromStack() {
         SP.increment();
-        return memory.read(SP.read() + CPUMemory.STACK_OFFSET);
+        return memory.read(Utilities.addUnsignedByteToInt(CPUMemory.STACK_OFFSET, SP.readAsByte()));
     }
 
     /**
@@ -336,7 +333,8 @@ public class CPU {
         byte opcode = this.memory.read(this.PC.read());
         Operation op = this.operationMap.get(opcode);
         if (op == null) {
-            throw new UnimplementedOpcode("Unimplemented instruction: " + String.format("0x%02x", opcode));
+            op = this.operationMap.get((byte) 0xEA);
+//            throw new UnimplementedOpcode("Unimplemented instruction: " + String.format("0x%02x", opcode));
         }
         op.execute(this);
     }

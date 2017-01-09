@@ -14,6 +14,7 @@ class ReturnFromInterruptImplicit extends Operation {
     @Override
     public void execute(CPU cpu) {
         cpu.P.writeByte(cpu.pullFromStack());
+        cpu.P.orByte((byte) 0x20);
         cpu.pullPCFromStack();
 
         cpu.cycles += cycles;

@@ -20,10 +20,7 @@ abstract class SubtractWithCarryOperationBase extends Operation {
         byte value = AddressingModeUtilities.getValue(addressingMode, cpu, cpu.readAfterPC(numBytes - 1));
         byte oldA = cpu.A.readAsByte();
 
-        cpu.A.addByte((byte) ((byte) 0x01 + ~value), false);
-        if (!cpu.P.carryFlag()) {
-            cpu.A.addByte((byte) 0xff, false);
-        }
+        boolean carryFlag = !cpu.A.subtractByte(value, cpu.P.carryFlag());
 
         // Underflow if we were negative and subtracted a positive number to go positive
         boolean underflowFlag = oldA < 0 && value >= 0 && cpu.A.readAsByte() >= 0;
@@ -36,6 +33,11 @@ abstract class SubtractWithCarryOperationBase extends Operation {
             cpu.P.clearOverflowFlag();
         }
 
+        if (carryFlag) {
+            cpu.P.setCarryFlag();
+        } else {
+            cpu.P.clearCarryFlag();
+        }
 
         if (cpu.A.read() == 0) {
             cpu.P.setZeroFlag();

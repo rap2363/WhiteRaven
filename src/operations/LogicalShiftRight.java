@@ -2,6 +2,8 @@ package operations;
 
 import nes.CPU;
 
+import javax.rmi.CORBA.Util;
+
 abstract class LogicalShiftRightOperationBase extends Operation {
 
     LogicalShiftRightOperationBase(AddressingMode addressingMode, byte opcode, int numBytes, int cycles) {
@@ -18,7 +20,8 @@ abstract class LogicalShiftRightOperationBase extends Operation {
     public void execute(CPU cpu) {
         byte value = AddressingModeUtilities.getValue(addressingMode, cpu, cpu.readAfterPC(numBytes - 1));
         int address = AddressingModeUtilities.getAddress(addressingMode, cpu, cpu.readAfterPC(numBytes - 1));
-        cpu.memory.write(address, Utilities.bitShift(value, 1));
+        byte result = Utilities.bitShift(value, 1);
+        cpu.memory.write(address, result);
 
         // Set the processor status flags
         if (Utilities.bitAt(value, 0)) {
@@ -27,13 +30,13 @@ abstract class LogicalShiftRightOperationBase extends Operation {
             cpu.P.clearCarryFlag();
         }
 
-        if (cpu.A.read() == 0) {
+        if (result == 0) {
             cpu.P.setZeroFlag();
         } else {
             cpu.P.clearZeroFlag();
         }
 
-        if (cpu.A.signBit()) {
+        if (result < 0) {
             cpu.P.setNegativeFlag();
         } else {
             cpu.P.clearNegativeFlag();
@@ -51,7 +54,27 @@ class LogicalShiftRightImplicit extends LogicalShiftRightOperationBase {
 
     @Override
     public void execute(CPU cpu) {
-        cpu.A.shiftLeft(1);
+        boolean carryFlag = Utilities.bitAt(cpu.A.readAsByte(), 0);
+        cpu.A.shiftRight(1);
+
+        // Set the processor status flags
+        if (carryFlag) {
+            cpu.P.setCarryFlag();
+        } else {
+            cpu.P.clearCarryFlag();
+        }
+
+        if (cpu.A.read() == 0) {
+            cpu.P.setZeroFlag();
+        } else {
+            cpu.P.clearZeroFlag();
+        }
+
+        if (cpu.A.signBit()) {
+            cpu.P.setNegativeFlag();
+        } else {
+            cpu.P.clearNegativeFlag();
+        }
 
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;

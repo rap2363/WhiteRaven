@@ -20,9 +20,47 @@ abstract class RotateRightOperationBase extends Operation {
         boolean newCarryFlag = Utilities.bitAt(value, 0);
         value = Utilities.bitShift(value, 1);
         if (cpu.P.carryFlag()) {
-            value += (byte) 0x80;
+            value |= (byte) 0x80;
         }
         cpu.memory.write(address, value);
+
+        // Set the processor status flags
+        if (newCarryFlag) {
+            cpu.P.setCarryFlag();
+        } else {
+            cpu.P.clearCarryFlag();
+        }
+
+        if (value == 0) {
+            cpu.P.setZeroFlag();
+        } else {
+            cpu.P.clearZeroFlag();
+        }
+
+        if (value < 0) {
+            cpu.P.setNegativeFlag();
+        } else {
+            cpu.P.clearNegativeFlag();
+        }
+
+        cpu.PC.incrementBy(numBytes);
+        cpu.cycles += cycles;
+    }
+}
+
+class RotateRightImplicit extends RotateRightOperationBase {
+    public RotateRightImplicit(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
+        super(addressMode, opcode, numBytes, cycles);
+    }
+
+    @Override
+    public void execute(CPU cpu) {
+        boolean newCarryFlag = Utilities.bitAt(cpu.A.readAsByte(), 0);
+        cpu.A.shiftRight(1);
+
+        if (cpu.P.carryFlag()) {
+            cpu.A.orByte((byte) 0x80);
+        }
 
         // Set the processor status flags
         if (newCarryFlag) {
@@ -42,20 +80,6 @@ abstract class RotateRightOperationBase extends Operation {
         } else {
             cpu.P.clearNegativeFlag();
         }
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
-    }
-}
-
-class RotateRightImplicit extends RotateRightOperationBase {
-    public RotateRightImplicit(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
-        super(addressMode, opcode, numBytes, cycles);
-    }
-
-    @Override
-    public void execute(CPU cpu) {
-        cpu.A.shiftLeft(1);
 
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;

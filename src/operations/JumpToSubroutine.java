@@ -17,7 +17,7 @@ class JumpToSubroutineImplicit extends Operation {
     @Override
     public void execute(CPU cpu) {
         int targetAddress = AddressingModeUtilities.getAddress(addressingMode, cpu, cpu.readAfterPC(numBytes - 1));
-        cpu.PC.incrementBy(numBytes);
+        cpu.PC.incrementBy(numBytes - 1);
         cpu.pushPCOntoStack();
 
         cpu.PC.write(targetAddress);

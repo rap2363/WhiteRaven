@@ -181,7 +181,7 @@ public final class AddressingModeUtilities {
      * @return
      */
     private static int getAddressAbsoluteX(CPU cpu, byte[] bytes) {
-        return Utilities.addUnsignedByteToInt(Utilities.toUnsignedValue(bytes[0], bytes[1]), cpu.X.readAsByte());
+        return Utilities.addUnsignedByteToInt(Utilities.toUnsignedValue(bytes[1], bytes[0]), cpu.X.readAsByte());
     }
 
     /**
@@ -230,9 +230,16 @@ public final class AddressingModeUtilities {
      * @return
      */
     private static int getAddressIndirectX(CPU cpu, byte[] bytes) {
+        System.out.println((byte) (bytes[0] + cpu.X.readAsByte()));
         int targetAddress = Utilities.toUnsignedValue((byte) (bytes[0] + cpu.X.readAsByte()));
         byte low = cpu.memory.read(targetAddress);
-        byte high = cpu.memory.read(Utilities.addUnsignedByteToInt(targetAddress, (byte) 0x01));
+        byte high = 0;
+        // Zero page wrap around
+        if (targetAddress == 0xFF) {
+            high = cpu.memory.read(0);
+        } else {
+            high = cpu.memory.read(Utilities.addUnsignedByteToInt(targetAddress, (byte) 0x01));
+        }
         return Utilities.toUnsignedValue(high, low);
     }
 
@@ -260,8 +267,15 @@ public final class AddressingModeUtilities {
     private static int getAddressIndirectY(CPU cpu, byte[] bytes) {
         int targetAddress = Utilities.toUnsignedValue(bytes[0]);
         byte low = cpu.memory.read(targetAddress);
-        byte high = cpu.memory.read(Utilities.addUnsignedByteToInt(targetAddress, (byte) 0x01));
-        int concatenatedTarget = cpu.memory.read(Utilities.toUnsignedValue(high, low));
+        byte high;
+        // Zero page wrap around
+        if (targetAddress == 0xFF) {
+            high = cpu.memory.read(0);
+        } else {
+            high = cpu.memory.read(Utilities.addUnsignedByteToInt(targetAddress, (byte) 0x01));
+        }
+
+        int concatenatedTarget = Utilities.toUnsignedValue(high, low);
         return Utilities.addUnsignedByteToInt(concatenatedTarget, cpu.Y.readAsByte());
     }
 

@@ -55,6 +55,13 @@ public class EightBitRegister implements Register {
         return overflow;
     }
 
+    public boolean subtractByte(byte b, boolean carryBit) {
+        boolean underflow = Utilities.toUnsignedValue(this.data) + (byte) ((byte) 0x01 + ~Utilities.toUnsignedValue(b))
+                + (carryBit ? 0 : 0xFF) < 0;
+        this.data -= b - (carryBit ? 0 : 0xFF);
+        return underflow;
+    }
+
     public void andByte(byte b) {
         this.data &= b;
     }

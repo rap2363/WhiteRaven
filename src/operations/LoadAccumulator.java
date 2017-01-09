@@ -96,6 +96,18 @@ class LoadAccumulatorIndirectX extends LoadAccumulatorOperationBase {
     public LoadAccumulatorIndirectX(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
         super(addressMode, opcode, numBytes, cycles);
     }
+
+    @Override
+    public void execute(CPU cpu) {
+        super.execute(cpu);
+
+        byte[] bytes = cpu.readAfterPC(numBytes - 1);
+        int targetAddress = Utilities.toUnsignedValue(bytes[0]);
+        byte low = cpu.memory.read(targetAddress);
+        if (Utilities.getOverflowFlag(low, cpu.X.readAsByte(), false)) {
+            cpu.cycles++;
+        }
+    }
 }
 
 class LoadAccumulatorIndirectY extends LoadAccumulatorOperationBase {
