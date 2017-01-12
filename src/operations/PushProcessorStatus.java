@@ -9,12 +9,15 @@ class PushProcessorStatusImplicit extends Operation {
     }
 
     /**
-     * Push the processor status register onto the stack
+     * Push the processor status register onto the stack.
+     * Note, this copies the six flags over, but sets bits 4 and 5 in the copy, which are technically not flags.
      */
     @Override
     public void execute(CPU cpu) {
-        cpu.pushOntoStack(cpu.P.readAsByte());
+        byte value = cpu.P.readAsByte();
+        value |= 0x10;
 
+        cpu.pushOntoStack(value);
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;
     }

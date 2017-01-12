@@ -50,9 +50,16 @@ public class EightBitRegister implements Register {
 
     public boolean addByte(byte b, boolean carryBit) {
         boolean overflow = Utilities.toUnsignedValue(this.data) + Utilities.toUnsignedValue(b)
-                + (carryBit ? 1 : 0) > MAX_EIGHT_BIT_VALUE;
+                + (carryBit ? 1 : 0) >= MAX_EIGHT_BIT_VALUE;
         this.data += b + (carryBit ? 1 : 0);
         return overflow;
+    }
+
+    public boolean subtractByte(byte b, boolean carryBit) {
+        boolean underflow = Utilities.toUnsignedValue(this.data) + (byte) ((byte) 0x01 + ~Utilities.toUnsignedValue(b))
+                + (carryBit ? 0 : 0xFF) < 0;
+        this.data -= b - (carryBit ? 0 : 0xFF);
+        return underflow;
     }
 
     public void andByte(byte b) {
@@ -72,6 +79,6 @@ public class EightBitRegister implements Register {
     }
 
     public String toString() {
-        return String.format("0x%02x", this.data);
+        return Utilities.byteToString(this.data);
     }
 }

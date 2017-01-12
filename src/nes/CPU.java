@@ -34,14 +34,12 @@ class CPUMemory extends MemoryMap {
         // RAM mirrored every 2 kiB
         if (address < RAM_OFFSET) {
             return memory[address % 0x0800];
+        } else if (address < IO_REGISTER_OFFSET) {
+            // I/O registers mirrored (8 I/O registers total)
+            return memory[RAM_OFFSET + address % 0x0008];
         }
 
-        // I/O registers mirrored (8 I/O registers total)
-        if (address < IO_REGISTER_OFFSET) {
-            return memory[address % 0x0008];
-        }
-
-        return memory[address];
+        return memory[address % MEMORY_SIZE];
     }
 
     /**
@@ -52,17 +50,16 @@ class CPUMemory extends MemoryMap {
      */
     @Override
     public void write(int address, byte value) {
-        // RAM mirrored every 2 kiB
+        if (address % 0x0800 == 0)
         if (address < RAM_OFFSET) {
+            // RAM mirrored every 2 kiB
             memory[address % 0x0800] = value;
+        } else if (address < IO_REGISTER_OFFSET) {
+            // I/O registers mirrored (8 I/O registers total)
+            memory[IO_REGISTER_OFFSET + address % 0x0008] = value;
         }
 
-        // I/O registers mirrored (8 I/O registers total)
-        if (address < IO_REGISTER_OFFSET) {
-            memory[address % 0x0008] = value;
-        }
-
-        memory[address] = value;
+        memory[address % MEMORY_SIZE] = value;
     }
 }
 
@@ -164,7 +161,7 @@ public class CPU {
         }
 
         // Initial state
-        P.write(0x34);
+        P.write(0x24);
         SP.write(0xFD);
         A.write(0x0);
         X.write(0x0);
@@ -189,6 +186,27 @@ public class CPU {
     }
 
     /**
+     * Returns the state in a single line like:
+     *
+     * C000 A:00 X:00 Y:00 P:24 SP:FD CYC: 0
+     * @return
+     */
+    public String singleLineState() {
+        String state = "";
+
+        state += Utilities.twoBytesToString(this.PC.read()) + "  ";
+        state += "A:" + this.A + " ";
+        state += "X:" + this.X + " ";
+        state += "Y:" + this.Y + " ";
+        state += "P:" + Utilities.byteToString(this.P.readAsByte()) + " ";
+        state += "SP:" + this.SP + " ";
+        state += "CYC:" + this.cycles + "\n";
+
+        return state;
+
+    }
+
+    /**
      * This method is called externally (by the PPU or other things). It automatically handles interrupt priority.
      *
      */
@@ -196,6 +214,15 @@ public class CPU {
         if (this.currentInterrupt.ordinal() < interrupt.ordinal()) {
             this.currentInterrupt = interrupt;
         }
+    }
+
+    /**
+     * Shouldn't be called except for testing (use triggerInterrupt() instead)
+     *
+     * @param interrupt
+     */
+    public void setCurrentInterrupt(Interrupt interrupt) {
+        this.currentInterrupt = interrupt;
     }
 
     /**
@@ -254,7 +281,7 @@ public class CPU {
      * Push a byte onto the stack (this decrements the stack pointer)
      */
     public void pushOntoStack(byte value) {
-        memory.write(SP.read() + CPUMemory.STACK_OFFSET, value);
+        memory.write(Utilities.addUnsignedByteToInt(CPUMemory.STACK_OFFSET, SP.readAsByte()), value);
         SP.decrement();
     }
 
@@ -282,7 +309,7 @@ public class CPU {
      */
     public byte pullFromStack() {
         SP.increment();
-        return memory.read(SP.read() + CPUMemory.STACK_OFFSET);
+        return memory.read(Utilities.addUnsignedByteToInt(CPUMemory.STACK_OFFSET, SP.readAsByte()));
     }
 
     /**
@@ -326,15 +353,14 @@ public class CPU {
      */
     public void loadCartridge(Cartridge cartridge) {
         // Hard coded (Refactor!)
-        for (int i = 0; i < 0x4000; i++) {
-            this.memory.write(CPUMemory.PRG_LOWER_BANK + i, (byte) cartridge.getPRGRomBank(0)[i]);
-            this.memory.write(CPUMemory.PRG_UPPER_BANK + i, (byte) cartridge.getPRGRomBank(0)[i]);
-        }
+        final byte[] bytes = cartridge.getPRGRomBank(0);
+        this.memory.write(CPUMemory.PRG_LOWER_BANK, bytes);
+        this.memory.write(CPUMemory.PRG_UPPER_BANK, bytes);
     }
 
     public static void main(String[] args) {
         CPU cpu = new CPU();
-        cpu.P.write(0x30);
+        cpu.P.write(0x20);
         cpu.SP.write(0xFF);
         cpu.PC.write(0x0600);
 

@@ -71,7 +71,7 @@ public class StoreAccumulator extends Instruction {
         this.addOperation(new StoreAccumulatorZeroPage(AddressingMode.ZeroPage, (byte) 0x85, 2, 3));
         this.addOperation(new StoreAccumulatorZeroPageX(AddressingMode.ZeroPageX, (byte) 0x95, 2, 4));
         this.addOperation(new StoreAccumulatorAbsolute(AddressingMode.Absolute, (byte) 0x8D, 3, 4));
-        this.addOperation(new StoreAccumulatorAbsoluteX(AddressingMode.AbsoluteX, (byte) 0x8D, 3, 5));
+        this.addOperation(new StoreAccumulatorAbsoluteX(AddressingMode.AbsoluteX, (byte) 0x9D, 3, 5));
         this.addOperation(new StoreAccumulatorAbsoluteY(AddressingMode.AbsoluteY, (byte) 0x99, 3, 5));
         this.addOperation(new StoreAccumulatorIndirectX(AddressingMode.IndirectX, (byte) 0x81, 2, 6));
         this.addOperation(new StoreAccumulatorIndirectY(AddressingMode.IndirectY, (byte) 0x91, 2, 6));

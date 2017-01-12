@@ -17,12 +17,52 @@ abstract class RotateLeftOperationBase extends Operation {
     public void execute(CPU cpu) {
         byte value = AddressingModeUtilities.getValue(addressingMode, cpu, cpu.readAfterPC(numBytes - 1));
         int address = AddressingModeUtilities.getAddress(addressingMode, cpu, cpu.readAfterPC(numBytes - 1));
+
         boolean newCarryFlag = Utilities.bitAt(value, 7);
         value = Utilities.bitShift(value, -1);
+
         if (cpu.P.carryFlag()) {
-            value++;
+            value |= 0x01;
         }
         cpu.memory.write(address, value);
+
+        // Set the processor status flags
+        if (newCarryFlag) {
+            cpu.P.setCarryFlag();
+        } else {
+            cpu.P.clearCarryFlag();
+        }
+
+        if (value == 0) {
+            cpu.P.setZeroFlag();
+        } else {
+            cpu.P.clearZeroFlag();
+        }
+
+        if (value < 0) {
+            cpu.P.setNegativeFlag();
+        } else {
+            cpu.P.clearNegativeFlag();
+        }
+
+        cpu.PC.incrementBy(numBytes);
+        cpu.cycles += cycles;
+    }
+}
+
+class RotateLeftImplicit extends RotateLeftOperationBase {
+    public RotateLeftImplicit(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
+        super(addressMode, opcode, numBytes, cycles);
+    }
+
+    @Override
+    public void execute(CPU cpu) {
+        boolean newCarryFlag = Utilities.bitAt(cpu.A.readAsByte(), 7);
+        cpu.A.shiftLeft(1);
+
+        if (cpu.P.carryFlag()) {
+            cpu.A.orByte((byte) 0x01);
+        }
 
         // Set the processor status flags
         if (newCarryFlag) {
@@ -42,21 +82,6 @@ abstract class RotateLeftOperationBase extends Operation {
         } else {
             cpu.P.clearNegativeFlag();
         }
-
-        cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
-    }
-}
-
-class RotateLeftImplicit extends RotateLeftOperationBase {
-    public RotateLeftImplicit(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {
-        super(addressMode, opcode, numBytes, cycles);
-    }
-
-    @Override
-    public void execute(CPU cpu) {
-        cpu.A.shiftLeft(1);
-
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;
     }

@@ -21,6 +21,7 @@ abstract class ArithmeticShiftLeftOperationBase extends Operation {
     public void execute(CPU cpu) {
         byte value = AddressingModeUtilities.getValue(addressingMode, cpu, cpu.readAfterPC(numBytes - 1));
         int address = AddressingModeUtilities.getAddress(addressingMode, cpu, cpu.readAfterPC(numBytes - 1));
+        byte result = Utilities.bitShift(value, -1);
         cpu.memory.write(address, Utilities.bitShift(value, -1));
 
         // Set the processor status flags
@@ -30,13 +31,13 @@ abstract class ArithmeticShiftLeftOperationBase extends Operation {
             cpu.P.clearCarryFlag();
         }
 
-        if (cpu.A.read() == 0) {
+        if (result == 0) {
             cpu.P.setZeroFlag();
         } else {
             cpu.P.clearZeroFlag();
         }
 
-        if (cpu.A.signBit()) {
+        if (result < 0) {
             cpu.P.setNegativeFlag();
         } else {
             cpu.P.clearNegativeFlag();
@@ -54,7 +55,27 @@ class ArithmeticShiftLeftImplicit extends ArithmeticShiftLeftOperationBase {
 
     @Override
     public void execute(CPU cpu) {
+        boolean carryFlag = cpu.A.signBit();
         cpu.A.shiftLeft(1);
+
+        // Set the processor status flags
+        if (carryFlag) {
+            cpu.P.setCarryFlag();
+        } else {
+            cpu.P.clearCarryFlag();
+        }
+
+        if (cpu.A.read() == 0) {
+            cpu.P.setZeroFlag();
+        } else {
+            cpu.P.clearZeroFlag();
+        }
+
+        if (cpu.A.signBit()) {
+            cpu.P.setNegativeFlag();
+        } else {
+            cpu.P.clearNegativeFlag();
+        }
 
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;

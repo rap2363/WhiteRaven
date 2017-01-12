@@ -13,7 +13,7 @@ class ClearDecimalModeImplicit extends Operation {
      */
     @Override
     public void execute(CPU cpu) {
-        cpu.P.clearCarryFlag();
+        cpu.P.clearDecimalModeFlag();
 
         cpu.PC.incrementBy(numBytes);
         cpu.cycles += cycles;

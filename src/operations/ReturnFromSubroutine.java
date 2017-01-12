@@ -15,6 +15,7 @@ class ReturnFromSubroutineImplicit extends Operation {
     @Override
     public void execute(CPU cpu) {
         cpu.pullPCFromStack();
+        cpu.PC.increment();
 
         cpu.cycles += cycles;
     }
