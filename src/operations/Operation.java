@@ -2,6 +2,9 @@ package operations;
 
 import nes.CPU;
 
+/**
+ * An abstract class to represent a specific opcode + addressing mode.
+ */
 public abstract class Operation {
     public AddressingMode addressingMode;
     public byte opcode;
