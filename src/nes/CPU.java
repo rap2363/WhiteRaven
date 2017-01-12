@@ -36,7 +36,7 @@ class CPUMemory extends MemoryMap {
             return memory[address % 0x0800];
         } else if (address < IO_REGISTER_OFFSET) {
             // I/O registers mirrored (8 I/O registers total)
-            return memory[IO_REGISTER_OFFSET + address % 0x0008];
+            return memory[RAM_OFFSET + address % 0x0008];
         }
 
         return memory[address % MEMORY_SIZE];
@@ -167,8 +167,7 @@ public class CPU {
         X.write(0x0);
         Y.write(0x0);
 
-//        currentInterrupt = Interrupt.RESET;
-        currentInterrupt = Interrupt.NONE;
+        currentInterrupt = Interrupt.RESET;
     }
 
     public String state() {
@@ -215,6 +214,15 @@ public class CPU {
         if (this.currentInterrupt.ordinal() < interrupt.ordinal()) {
             this.currentInterrupt = interrupt;
         }
+    }
+
+    /**
+     * Shouldn't be called except for testing (use triggerInterrupt() instead)
+     *
+     * @param interrupt
+     */
+    public void setCurrentInterrupt(Interrupt interrupt) {
+        this.currentInterrupt = interrupt;
     }
 
     /**
@@ -333,8 +341,7 @@ public class CPU {
         byte opcode = this.memory.read(this.PC.read());
         Operation op = this.operationMap.get(opcode);
         if (op == null) {
-            op = this.operationMap.get((byte) 0xEA);
-//            throw new UnimplementedOpcode("Unimplemented instruction: " + String.format("0x%02x", opcode));
+            throw new UnimplementedOpcode("Unimplemented instruction: " + String.format("0x%02x", opcode));
         }
         op.execute(this);
     }

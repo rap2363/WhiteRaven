@@ -1,6 +1,7 @@
 package nes;
 
 import java.io.*;
+import java.nio.file.Paths;
 
 public class NESLogComparisonTest {
     private static class State {
@@ -63,7 +64,10 @@ public class NESLogComparisonTest {
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-        Console console = new Console();
+        Console console = new Console("/Users/rparanjpe/WhiteRaven/nestest.nes");
+        console.cpu.PC.write(0xC000);
+        console.cpu.setCurrentInterrupt(Interrupt.NONE);
+
         BufferedReader reader = new BufferedReader(new FileReader(new File("nestest.log")));
         String line;
         int lineCount = 0;
@@ -80,6 +84,7 @@ public class NESLogComparisonTest {
                 console.cpu.fetchAndExecute();
             }
         } catch (UnimplementedOpcode | IOException e) {
+            System.out.println("Line #: " + lineCount);
             e.printStackTrace();
         }
     }

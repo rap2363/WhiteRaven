@@ -12,15 +12,14 @@ public class Console {
     public CPU cpu = new CPU();
     public Cartridge cartridge;
 
-    public Console() {
+    public Console(final String cartridgePath) {
         cpu = new CPU();
-        cartridge = Cartridge.makeFrom(Paths.get("/Users/rparanjpe/WhiteRaven/nestest.nes"));
+        cartridge = Cartridge.makeFrom(Paths.get(cartridgePath));
         cpu.loadCartridge(cartridge);
-        cpu.PC.write(0xC000);
     }
 
     public static void main(String[] args) {
-        Console console = new Console();
+        Console console = new Console("/Users/rparanjpe/WhiteRaven/DonkeyKong.nes");
         System.out.println(console.cpu.state());
 
         while (true) {
