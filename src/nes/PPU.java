@@ -1,12 +1,11 @@
-package memory;
+package nes;
 
+import memory.ConsoleMemory;
 /**
  * Models the PPU architecture
  */
 public class PPU {
-    public MemoryMap vRam;
-    public MemoryMap spRam;
-
+    ConsoleMemory consoleMemory;
     public long cycles;
     public boolean evenFlag;
     public int address;
@@ -40,10 +39,8 @@ public class PPU {
     // Across and going down (add 1, add 32)
     private static int[] tableIncrements = {0x01, 0x20};
 
-    public PPU() {
-        vRam = new VRAM();
-        spRam = new SPRAM();
-
+    public PPU(ConsoleMemory consoleMemory) {
+        this.consoleMemory = consoleMemory;
         cycles = 0;
         evenFlag = true;
 
