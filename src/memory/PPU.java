@@ -1,4 +1,4 @@
-package nes;
+package memory;
 
 /**
  * Models the PPU architecture

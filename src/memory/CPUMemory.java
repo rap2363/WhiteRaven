@@ -1,4 +1,4 @@
-package nes;
+package memory;
 
 public class CPUMemory extends MemoryMap {
     private static final int MEMORY_SIZE = 0x10000;

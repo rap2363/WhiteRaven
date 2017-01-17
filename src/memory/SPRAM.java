@@ -1,4 +1,4 @@
-package nes;
+package memory;
 
 /**
  * The PPU also has a separate location of memory specifically for SPR-RAM which is distinct from main memory.

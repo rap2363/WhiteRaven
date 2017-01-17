@@ -1,4 +1,4 @@
-package nes;
+package memory;
 
 /**
  * This is the main Video RAM of the PPU where the sprites and background images are held.
@@ -33,8 +33,8 @@ class VRAM extends MemoryMap {
             this.memory[address % 0x1000 + 0x2000] = value;
         } else if (address < size()) {
             this.memory[address % 0x20 + PALLETE_OFFSET] = value;
+        } else {
+            this.memory[address % size()] = value;
         }
-
-        this.memory[address % size()] = value;
     }
 }

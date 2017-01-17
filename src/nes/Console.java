@@ -1,9 +1,8 @@
 package nes;
 
-import operations.Utilities;
+import memory.ConsoleMemory;
 
 import java.nio.file.Paths;
-import java.util.Scanner;
 
 /**
  * Encompasses multiple emulated components of the entire NES (the CPU, PPU, APU, and Memory Mapper for the Cartridge)

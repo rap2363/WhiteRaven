@@ -1,4 +1,6 @@
-package nes;
+package memory;
+
+import nes.Cartridge;
 
 /**
  * This object manages all reads and writes into main memory. It acts similarly to virtual memory and as a layer

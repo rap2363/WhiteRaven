@@ -1,4 +1,4 @@
-package nes;
+package memory;
 
 import operations.Utilities;
 
