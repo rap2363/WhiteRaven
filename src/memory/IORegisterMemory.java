@@ -19,7 +19,7 @@ public class IORegisterMemory extends MemoryMap {
     // writing twice to PPU_ADDRESS). ConsoleMemory will read these values and load them into the PPU's internal
     // registers at the right time.
     public SixteenBitLatch ppuAddressLatch;
-    public SixteenBitLatch ppuDataLatch;
+    public SixteenBitLatch ppuScrollLatch;
 
     public boolean dmaFlag = false;
 
@@ -30,7 +30,7 @@ public class IORegisterMemory extends MemoryMap {
     public IORegisterMemory() {
         super(numPpuRegisters + numSecondSetRegisters);
         ppuAddressLatch = new SixteenBitLatch();
-        ppuDataLatch = new SixteenBitLatch();
+        ppuScrollLatch = new SixteenBitLatch();
     }
 
     /**
@@ -59,8 +59,8 @@ public class IORegisterMemory extends MemoryMap {
             switch (address) {
                 case PPU_ADDRESS:
                     ppuAddressLatch.write(value);
-                case PPU_DATA:
-                    ppuDataLatch.write(value);
+                case PPU_SCROLL:
+                    ppuScrollLatch.write(value);
                 case SPR_DATA:
                     this.memory[SPR_ADDRESS]++;
                 case SPR_ADDRESS:
