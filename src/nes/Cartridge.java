@@ -14,15 +14,28 @@ public class Cartridge {
     private final static int CHR_ROM_BANK_SIZE = 8 * 1024; // 8 kiB banks
     private final byte[][] prgRomBanks;
     private final byte[][] chrRomBanks;
+    private final byte[] expansionRom;
+    private final byte[] saveRam;
 
     private final int mapper;
     private final MirroringMode mirroringMode;
+
+    private int lowerBankIndex;
+    private int upperBankIndex;
+    private int chrRomBankIndex;
 
     private Cartridge(final byte[][] prgRomBanks, final byte[][] chrRomBanks, int mapper, MirroringMode mirroringMode) {
         this.prgRomBanks = prgRomBanks;
         this.chrRomBanks = chrRomBanks;
         this.mapper = mapper;
         this.mirroringMode = mirroringMode;
+
+        // Temporary while we don't have bank switching or memory management controllers
+        lowerBankIndex = 0;
+        upperBankIndex = 0;
+        chrRomBankIndex = 0;
+        this.expansionRom = new byte[0x6000 - 0x4020];
+        this.saveRam = new byte[0x2000];
     }
 
     public static Cartridge makeFrom(final Path nesFile) {
@@ -105,6 +118,35 @@ public class Cartridge {
             return null;
         }
         return prgRomBanks[n];
+    }
+
+    public byte read(int address) {
+        if (address < this.expansionRom.length) {
+            return this.expansionRom[address];
+        } else if (address < (this.expansionRom.length + this.saveRam.length)) {
+            return this.saveRam[address - this.expansionRom.length];
+        }
+
+        address -= 0x3FE0;
+        if (address < PRG_ROM_BANK_SIZE) {
+            return getPRGRomBank(lowerBankIndex)[address];
+        }
+        return getPRGRomBank(upperBankIndex)[address - PRG_ROM_BANK_SIZE];
+    }
+
+    public void write(int address, byte value) {
+        if (address < this.expansionRom.length) {
+            expansionRom[address] = value;
+        } else if (address < (this.expansionRom.length + this.saveRam.length)) {
+            saveRam[address - this.expansionRom.length] = value;
+        }
+
+        address -= 0x3FE0;
+        if (address < PRG_ROM_BANK_SIZE) {
+            getPRGRomBank(lowerBankIndex)[address] = value;
+        } else {
+            getPRGRomBank(upperBankIndex)[address - PRG_ROM_BANK_SIZE] = value;
+        }
     }
 
     public static void main(String[] args) {

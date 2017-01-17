@@ -6,6 +6,10 @@ package nes;
 public abstract class MemoryMap {
     protected byte[] memory;
 
+    public MemoryMap(int memorySize) {
+        memory = new byte[memorySize];
+    }
+
     /**
      * Read a byte from an address in memory
      *
