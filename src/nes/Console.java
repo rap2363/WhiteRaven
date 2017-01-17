@@ -9,13 +9,14 @@ import java.util.Scanner;
  * Encompasses multiple emulated components of the entire NES (the CPU, PPU, APU, and Memory Mapper for the Cartridge)
  */
 public class Console {
-    public CPU cpu = new CPU();
+    public ConsoleMemory consoleMemory;
+    public CPU cpu;
     public Cartridge cartridge;
 
     public Console(final String cartridgePath) {
-        cpu = new CPU();
         cartridge = Cartridge.makeFrom(Paths.get(cartridgePath));
-        cpu.loadCartridge(cartridge);
+        consoleMemory = ConsoleMemory.bootFromCartridge(cartridge);
+        cpu = new CPU(consoleMemory);
     }
 
     public static void main(String[] args) {
