@@ -5,7 +5,13 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import memory.*;
+import memory.MemoryMap;
+import memory.SixteenBitRegister;
+import memory.EightBitRegister;
+import memory.ProcessorStatus;
+import memory.ConsoleMemory;
+import memory.CPURAM;
+
 import operations.*;
 
 /**
@@ -229,7 +235,7 @@ public class CPU {
      * Push a byte onto the stack (this decrements the stack pointer)
      */
     public void pushOntoStack(byte value) {
-        memory.write(Utilities.addUnsignedByteToInt(CPUMemory.STACK_OFFSET, SP.readAsByte()), value);
+        memory.write(Utilities.addUnsignedByteToInt(CPURAM.STACK_OFFSET, SP.readAsByte()), value);
         SP.decrement();
     }
 
@@ -257,7 +263,7 @@ public class CPU {
      */
     public byte pullFromStack() {
         SP.increment();
-        return memory.read(Utilities.addUnsignedByteToInt(CPUMemory.STACK_OFFSET, SP.readAsByte()));
+        return memory.read(Utilities.addUnsignedByteToInt(CPURAM.STACK_OFFSET, SP.readAsByte()));
     }
 
     /**
