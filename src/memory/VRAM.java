@@ -3,7 +3,7 @@ package memory;
 /**
  * This is the main Video RAM of the PPU where the sprites and background images are held.
  */
-class VRAM extends MemoryMap {
+public class VRAM extends MemoryMap {
     private static final int SPRITE_TABLE_SIZE = 0x3000;
     private static final int PALLETE_OFFSET = 0x3F00;
     private static final int VRAM_SIZE = 0x4000;
