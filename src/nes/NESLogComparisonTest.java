@@ -1,7 +1,6 @@
 package nes;
 
 import java.io.*;
-import java.nio.file.Paths;
 
 public class NESLogComparisonTest {
     private static class State {

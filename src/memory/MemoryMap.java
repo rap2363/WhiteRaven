@@ -1,4 +1,4 @@
-package nes;
+package memory;
 
 /**
  * This abstract class can read/write to contiguous blocks of memory.

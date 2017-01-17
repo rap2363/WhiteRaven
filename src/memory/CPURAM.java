@@ -1,4 +1,4 @@
-package nes;
+package memory;
 
 public class CPURAM extends MemoryMap {
     public static final int STACK_OFFSET = 0x0100;
