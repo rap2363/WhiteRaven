@@ -6,7 +6,7 @@ public class CPURAM extends MemoryMap {
     private static final int MIRROR_OFFSET = 0x0800;
 
     public CPURAM() {
-        super(RAM_SIZE_IN_BYTES);
+        super(MIRROR_OFFSET);
     }
 
     /**
