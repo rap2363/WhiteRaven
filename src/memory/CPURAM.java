@@ -30,4 +30,9 @@ public class CPURAM extends MemoryMap {
     public void write(int address, byte value) {
         memory[address % MIRROR_OFFSET] = value;
     }
+
+    @Override
+    public int size() {
+        return RAM_SIZE_IN_BYTES;
+    }
 }

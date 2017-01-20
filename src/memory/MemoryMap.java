@@ -10,6 +10,8 @@ public abstract class MemoryMap {
         memory = new byte[memorySize];
     }
 
+    public MemoryMap() {}
+
     /**
      * Read a byte from an address in memory
      *

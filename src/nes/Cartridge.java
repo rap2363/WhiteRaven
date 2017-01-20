@@ -9,9 +9,10 @@ import java.nio.file.Path;
  * Represents an NES cartridge. Created from the iNES file format (*nes) via makeFrom()
  */
 public class Cartridge {
-    private final static int HEADER_LENGTH = 16;
-    private final static int PRG_ROM_BANK_SIZE = 16 * 1024; // 16 kiB banks
-    private final static int CHR_ROM_BANK_SIZE = 8 * 1024; // 8 kiB banks
+    public final static int PRG_ROM_BANK_SIZE = 0x4000; // 16 kiB banks
+    public final static int CHR_ROM_BANK_SIZE = 0x2000; // 8 kiB banks
+
+    private final static int HEADER_LENGTH = 0x10;
     private final byte[][] prgRomBanks;
     private final byte[][] chrRomBanks;
     private final byte[] expansionRom;
@@ -120,7 +121,13 @@ public class Cartridge {
         return prgRomBanks[n];
     }
 
-    public byte read(int address) {
+    /**
+     * Read a byte from the PRG-ROM address space
+     *
+     * @param address
+     * @return
+     */
+    public byte readPRGROM(int address) {
         if (address < this.expansionRom.length) {
             return this.expansionRom[address];
         } else if (address < (this.expansionRom.length + this.saveRam.length)) {
@@ -134,7 +141,14 @@ public class Cartridge {
         return getPRGRomBank(upperBankIndex)[address - PRG_ROM_BANK_SIZE];
     }
 
-    public void write(int address, byte value) {
+    /**
+     * Write a byte into the PRG-ROM address space
+     * Q: Will this be called during normal execution?
+     *
+     * @param address
+     * @param value
+     */
+    public void writePRGROM(int address, byte value) {
         if (address < this.expansionRom.length) {
             expansionRom[address] = value;
         } else if (address < (this.expansionRom.length + this.saveRam.length)) {
@@ -147,6 +161,27 @@ public class Cartridge {
         } else {
             getPRGRomBank(upperBankIndex)[address - PRG_ROM_BANK_SIZE] = value;
         }
+    }
+
+    /**
+     * Read a byte from the CHR-ROM address space
+     *
+     * @param address
+     * @return
+     */
+    public byte readCHRROM(int address) {
+        return getCHRRomBank(chrRomBankIndex)[address];
+    }
+
+
+    /**
+     * Write a byte into the CHR-ROM address space
+     *
+     * @param address
+     * @param value
+     */
+    public void writeCHRROM(int address, byte value) {
+        getCHRRomBank(chrRomBankIndex)[address] = value;
     }
 
     public static void main(String[] args) {
