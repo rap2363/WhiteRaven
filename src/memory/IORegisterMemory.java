@@ -1,31 +1,31 @@
 package memory;
 
 public class IORegisterMemory extends MemoryMap {
+    // These are allocated explicitly because of some two write logic (e.g. the CPU can write to the PPU address by
+    // writing twice to PPU_ADDRESS). ConsoleMemory will read these values and load them into the PPU's internal
+    // registers at the right time.
+    SixteenBitLatch ppuAddressLatch;
+    SixteenBitLatch ppuScrollLatch;
+
     private static final int numPpuRegisters = 0x0008;
     private static final int numSecondSetRegisters = 0x0020;
     private static final int SECOND_SET_IO_REGISTERS = 0x2000;
 
     // PPU register addresses (in first set of registers)
-    public static final int PPU_CTRL = 0x0000;
-    public static final int PPU_MASK = 0x0001;
-    public static final int PPU_STATUS = 0x0002;
-    public static final int SPR_ADDRESS = 0x0003;
-    public static final int SPR_DATA = 0x0004;
-    public static final int PPU_SCROLL = 0x0005;
-    public static final int PPU_ADDRESS = 0x0006;
-    public static final int PPU_DATA = 0x0007;
+    private static final int PPU_CTRL = 0x0000;
+    private static final int PPU_MASK = 0x0001;
+    private static final int PPU_STATUS = 0x0002;
+    private static final int SPR_ADDRESS = 0x0003;
+    private static final int SPR_DATA = 0x0004;
+    private static final int PPU_SCROLL = 0x0005;
+    private static final int PPU_ADDRESS = 0x0006;
+    private static final int PPU_DATA = 0x0007;
 
-    // These are allocated explicitly because of some two write logic (e.g. the CPU can write to the PPU address by
-    // writing twice to PPU_ADDRESS). ConsoleMemory will read these values and load them into the PPU's internal
-    // registers at the right time.
-    public SixteenBitLatch ppuAddressLatch;
-    public SixteenBitLatch ppuScrollLatch;
-
-    public boolean dmaFlag = false;
+    boolean dmaFlag = false;
 
     // Second set of registers (APU, controllers, DMA, etc.)
     // TODO: implement these registers!
-    public static final int SPR_DMA = 0x2014;
+    private static final int SPR_DMA = 0x2014;
 
     public IORegisterMemory() {
         super(numPpuRegisters + numSecondSetRegisters);
@@ -44,7 +44,7 @@ public class IORegisterMemory extends MemoryMap {
         if (address < SECOND_SET_IO_REGISTERS) {
             return memory[address % numPpuRegisters];
         }
-        return memory[address];
+        return memory[address - SECOND_SET_IO_REGISTERS];
     }
 
     /**
@@ -69,7 +69,7 @@ public class IORegisterMemory extends MemoryMap {
                     memory[address % numPpuRegisters] = value;
             }
         } else {
-            memory[address] = value;
+            memory[address - SECOND_SET_IO_REGISTERS] = value;
         }
     }
 }

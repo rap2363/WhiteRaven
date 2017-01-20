@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import memory.MemoryMap;
 import memory.SixteenBitRegister;
 import memory.EightBitRegister;
 import memory.ProcessorStatus;
@@ -18,7 +17,7 @@ import operations.*;
  * Models the NES CPU and 6502 processor architecture
  */
 public class CPU {
-    public MemoryMap memory;
+    public ConsoleMemory memory;
     public SixteenBitRegister PC;
     public EightBitRegister SP;
     public EightBitRegister A;
@@ -31,7 +30,7 @@ public class CPU {
     private HashMap<Byte, Operation> operationMap;
     private Interrupt currentInterrupt;
 
-    CPU(ConsoleMemory consoleMemory) {
+    CPU(final ConsoleMemory consoleMemory) {
         this.memory = consoleMemory;
         this.PC = new SixteenBitRegister();
         this.SP = new EightBitRegister();
