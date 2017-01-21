@@ -22,7 +22,7 @@ class JumpToSubroutineImplicit extends Operation {
 
         cpu.PC.write(targetAddress);
 
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

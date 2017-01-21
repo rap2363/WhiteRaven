@@ -16,7 +16,7 @@ class ClearInterruptDisableImplicit extends Operation {
         cpu.P.clearInterruptDisableFlag();
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

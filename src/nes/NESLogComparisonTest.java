@@ -80,10 +80,9 @@ public class NESLogComparisonTest {
                 }
                 System.out.println(line);
                 lineCount++;
-                console.cpu.fetchAndExecute();
+                console.cpu.execute();
             }
-        } catch (UnimplementedOpcode | IOException e) {
-            System.out.println("Line #: " + lineCount);
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

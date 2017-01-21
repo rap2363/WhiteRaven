@@ -19,7 +19,7 @@ abstract class StoreAccumulatorOperationBase extends Operation {
         cpu.memory.write(address, cpu.A.readAsByte());
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

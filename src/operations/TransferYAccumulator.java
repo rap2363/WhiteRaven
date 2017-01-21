@@ -30,7 +30,7 @@ class TransferYAccumulatorImplicit extends Operation {
         }
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

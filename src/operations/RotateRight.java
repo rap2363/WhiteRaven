@@ -44,7 +44,7 @@ abstract class RotateRightOperationBase extends Operation {
         }
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 
@@ -82,7 +82,7 @@ class RotateRightImplicit extends RotateRightOperationBase {
         }
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

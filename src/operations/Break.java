@@ -24,7 +24,7 @@ class BreakImplicit extends Operation {
 
         cpu.P.setBreakFlag();
 
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

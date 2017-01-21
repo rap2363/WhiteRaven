@@ -16,7 +16,7 @@ class ClearDecimalModeImplicit extends Operation {
         cpu.P.clearDecimalModeFlag();
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

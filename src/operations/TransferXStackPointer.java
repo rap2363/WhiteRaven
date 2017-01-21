@@ -18,7 +18,7 @@ class TransferXStackPointerImplicit extends Operation {
         cpu.SP.writeByte(cpu.X.readAsByte());
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

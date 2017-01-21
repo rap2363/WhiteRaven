@@ -16,16 +16,16 @@ public abstract class Branch extends Operation {
 
         // Add a cycle if we cross the page boundary
         if (Utilities.getOverflowFlag((byte) cpu.PC.read(), value, false)) {
-            cpu.cycles++;
+            cpu.cycleCount++;
         }
 
         if (branchCondition(cpu)) {
             cpu.PC.addByte(value);
-            cpu.cycles++;
+            cpu.cycleCount++;
         }
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 
     /**

@@ -16,7 +16,7 @@ import operations.*;
 /**
  * Models the NES CPU and 6502 processor architecture
  */
-public class CPU {
+public class CPU extends Processor {
     public ConsoleMemory memory;
     public SixteenBitRegister PC;
     public EightBitRegister SP;
@@ -24,9 +24,6 @@ public class CPU {
     public EightBitRegister X;
     public EightBitRegister Y;
     public ProcessorStatus P;
-
-    public long cycles;
-
     private HashMap<Byte, Operation> operationMap;
     private Interrupt currentInterrupt;
 
@@ -38,7 +35,7 @@ public class CPU {
         this.X = new EightBitRegister();
         this.Y = new EightBitRegister();
         this.P = new ProcessorStatus();
-        this.cycles = 0;
+        this.cycleCount = 0;
 
         operationMap = new HashMap<>();
 
@@ -127,7 +124,7 @@ public class CPU {
     public String state() {
         String state = "";
 
-        state += "Cycle Number: " + this.cycles + "\n";
+        state += "Cycle Number: " + this.cycleCount + "\n";
         state += "PC: " + this.PC + "\n";
         state += "SP: " + this.SP + "\n";
         state += "A:  " + this.A + "\n";
@@ -153,7 +150,7 @@ public class CPU {
         state += "Y:" + this.Y + " ";
         state += "P:" + Utilities.byteToString(this.P.readAsByte()) + " ";
         state += "SP:" + this.SP + " ";
-        state += "CYC:" + this.cycles + "\n";
+        state += "CYC:" + this.cycleCount + "\n";
 
         return state;
 
@@ -189,7 +186,7 @@ public class CPU {
     }
 
     /**
-     * Handle an interrupt. This is called internally during a fetchAndExecute() and takes the following steps:
+     * Handle an interrupt. This is called internally during an execute() and takes the following steps:
      *
      * 1. Check if we should ignore the interrupt, if we should, just exit quickly. Otherwise:
      * 2. Push the PC and the status register onto the stack
@@ -284,13 +281,15 @@ public class CPU {
      *
      * @throws UnimplementedOpcode
      */
-    public void fetchAndExecute() throws UnimplementedOpcode {
+    @Override
+    public void execute() {
         handleInterrupt();
 
         byte opcode = this.memory.read(this.PC.read());
         Operation op = this.operationMap.get(opcode);
         if (op == null) {
-            throw new UnimplementedOpcode("Unimplemented instruction: " + String.format("0x%02x", opcode));
+            System.err.println("Unimplemented instruction: " + String.format("0x%02x", opcode));
+            return;
         }
         op.execute(this);
     }
@@ -314,13 +313,9 @@ public class CPU {
         cpu.memory.write(0x060a, (byte) 0x00);
 
         System.out.println(cpu.state());
-        try {
-            for (int i = 0; i < 5; i++) {
-                cpu.fetchAndExecute();
-                System.out.println(cpu.state());
-            }
-        } catch (UnimplementedOpcode e) {
-            System.out.println(e.getMessage());
+        for (int i = 0; i < 5; i++) {
+            cpu.execute();
+            System.out.println(cpu.state());
         }
         System.out.println(String.format("0x%02x", cpu.memory.read(0x0306)));
     }

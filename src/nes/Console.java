@@ -31,16 +31,11 @@ public class Console {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                while (console.cpu.cycles < (1789773.0 / 60.0)) {
-                    try {
-                        console.cpu.fetchAndExecute();
-                    } catch (UnimplementedOpcode unimplementedOpcode) {
-                        unimplementedOpcode.printStackTrace();
-                        return;
-                    }
+                while (console.cpu.cycleCount < (1789773.0 / 60.0)) {
+                    console.cpu.executeCycle();
                     System.out.println(console.cpu.singleLineState());
                 }
-                console.cpu.cycles = 0;
+                console.cpu.cycleCount = 0;
             }
         }, 0, FRAME_TIME);
     }

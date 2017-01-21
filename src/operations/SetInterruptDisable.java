@@ -16,7 +16,7 @@ class SetInterruptDisableImplicit extends Operation {
         cpu.P.setInterruptDisableFlag();
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

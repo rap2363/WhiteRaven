@@ -43,7 +43,7 @@ abstract class CompareOperationBase extends Operation {
         }
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 
@@ -82,7 +82,7 @@ class CompareAbsoluteX extends CompareOperationBase {
 
         byte[] bytes = cpu.readAfterPC(numBytes - 1);
         if (Utilities.getOverflowFlag(bytes[1], cpu.X.readAsByte(), false)) {
-            cpu.cycles++;
+            cpu.cycleCount++;
         }
     }
 }
@@ -98,7 +98,7 @@ class CompareAbsoluteY extends CompareOperationBase {
 
         byte[] bytes = cpu.readAfterPC(numBytes - 1);
         if (Utilities.getOverflowFlag(bytes[1], cpu.Y.readAsByte(), false)) {
-            cpu.cycles++;
+            cpu.cycleCount++;
         }
     }
 }
@@ -122,7 +122,7 @@ class CompareIndirectY extends CompareOperationBase {
         int targetAddress = Utilities.toUnsignedValue(bytes[0]);
         byte low = cpu.memory.read(targetAddress);
         if (Utilities.getOverflowFlag(low, cpu.Y.readAsByte(), false)) {
-            cpu.cycles++;
+            cpu.cycleCount++;
         }
     }
 }
