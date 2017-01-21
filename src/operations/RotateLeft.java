@@ -46,7 +46,7 @@ abstract class RotateLeftOperationBase extends Operation {
         }
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 
@@ -83,7 +83,7 @@ class RotateLeftImplicit extends RotateLeftOperationBase {
             cpu.P.clearNegativeFlag();
         }
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

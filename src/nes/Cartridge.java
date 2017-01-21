@@ -118,7 +118,7 @@ public class Cartridge {
         if (n >= this.chrRomBanks.length) {
             return null;
         }
-        return prgRomBanks[n];
+        return chrRomBanks[n];
     }
 
     /**
@@ -186,27 +186,32 @@ public class Cartridge {
 
     public static void main(String[] args) {
         Cartridge cartridge = Cartridge.makeFrom(Paths.get("/Users/rparanjpe/WhiteRaven/DonkeyKong.nes"));
-        byte[] prgRomBank = cartridge.getPRGRomBank(0);
-        int i = 0;
-        System.out.println("DFS");
-        byte prev = -1;
-        for (byte b : prgRomBank) {
-            if ((int) b == 0x20) {
-                if ((int) prev == 0x00) {
-                    System.out.println("PPU_CTRL1");
+        byte[] patternTable = cartridge.getCHRRomBank(0);
+        for (int i = 0; i < 512; i++) {
+            int firstTileIndex = i * 16;
+            int secondTileIndex = firstTileIndex + 8;
+            System.out.println("Tile " + i);
+            for (int row = 0; row < 8; row++) {
+                byte b1 = patternTable[firstTileIndex + row];
+                byte b2 = patternTable[secondTileIndex + row];
+                String s = "";
+                for (int col = 0; col < 8; col++) {
+                    byte s1 = (byte) ((b1 >> (8 - col)) & 0x01);
+                    byte s2 = (byte) ((b2 >> (8 - col)) & 0x01);
+                    if (s1 == 0 && s2 == 0) {
+                        s += ". ";
+                    } else if (s1 == 0 && s2 == 1) {
+                        s += "* ";
+                    } else if (s1 == 1 && s2 == 0) {
+                        s += "@ ";
+                    } else if (s1 == 1 && s2 == 1){
+                        s += "$ ";
+                    }
                 }
-                if ((int) prev == 0x06) {
-                    System.out.println("PPU_ADDR");
-                }
+                System.out.println(s);
             }
-            if ((int) b == 0x14 && (int) prev == 0x40) {
-                System.out.println("DMA");
-            }
-            System.out.print(String.format("0x%02x  ", b));
-            if (i++ % 16 == 0) {
-                System.out.println();
-            }
-            prev = b;
+            System.out.println();
         }
+        System.out.println(patternTable.length);
     }
 }

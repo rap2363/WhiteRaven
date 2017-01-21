@@ -19,7 +19,7 @@ class PullProcessorStatusImplicit extends Operation {
         cpu.P.writeByte((byte) (flagValues | nonFlagValues));
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

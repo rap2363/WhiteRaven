@@ -17,7 +17,7 @@ class ReturnFromSubroutineImplicit extends Operation {
         cpu.pullPCFromStack();
         cpu.PC.increment();
 
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

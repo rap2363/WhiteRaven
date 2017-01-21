@@ -9,12 +9,12 @@ class NoOperationImplicit extends Operation {
     }
 
     /**
-     * Do nothing other than incrementing the PC and cycles.
+     * Do nothing other than incrementing the PC and cycleCount.
      */
     @Override
     public void execute(CPU cpu) {
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

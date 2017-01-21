@@ -89,7 +89,7 @@ public class PPU {
     }
 
     /**
-     * The PPU executes cycles to render one scanline. scanlineNumber is a number between 0 and 261.
+     * The PPU executes cycleCount to render one scanline. scanlineNumber is a number between 0 and 261.
      *
      * @param scanlineNumber
      */

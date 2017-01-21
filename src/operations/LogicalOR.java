@@ -49,7 +49,7 @@ class OrAbsoluteX extends OrOperationBase {
 
         byte[] bytes = cpu.readAfterPC(numBytes - 1);
         if (Utilities.getOverflowFlag(bytes[1], cpu.X.readAsByte(), false)) {
-            cpu.cycles++;
+            cpu.cycleCount++;
         }
     }
 }
@@ -65,7 +65,7 @@ class OrAbsoluteY extends OrOperationBase {
 
         byte[] bytes = cpu.readAfterPC(numBytes - 1);
         if (Utilities.getOverflowFlag(bytes[1], cpu.Y.readAsByte(), false)) {
-            cpu.cycles++;
+            cpu.cycleCount++;
         }
     }
 }
@@ -89,7 +89,7 @@ class OrIndirectY extends OrOperationBase {
         int targetAddress = Utilities.toUnsignedValue(bytes[0]);
         byte low = cpu.memory.read(targetAddress);
         if (Utilities.getOverflowFlag(low, cpu.Y.readAsByte(), false)) {
-            cpu.cycles++;
+            cpu.cycleCount++;
         }
     }
 }

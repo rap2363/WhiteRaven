@@ -16,7 +16,7 @@ class PushAccumulatorImplicit extends Operation {
         cpu.pushOntoStack(cpu.A.readAsByte());
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

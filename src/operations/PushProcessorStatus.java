@@ -19,7 +19,7 @@ class PushProcessorStatusImplicit extends Operation {
 
         cpu.pushOntoStack(value);
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

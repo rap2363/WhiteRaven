@@ -2,8 +2,6 @@ package operations;
 
 import nes.CPU;
 
-import javax.rmi.CORBA.Util;
-
 abstract class LogicalShiftRightOperationBase extends Operation {
 
     LogicalShiftRightOperationBase(AddressingMode addressingMode, byte opcode, int numBytes, int cycles) {
@@ -43,7 +41,7 @@ abstract class LogicalShiftRightOperationBase extends Operation {
         }
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 
@@ -77,7 +75,7 @@ class LogicalShiftRightImplicit extends LogicalShiftRightOperationBase {
         }
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

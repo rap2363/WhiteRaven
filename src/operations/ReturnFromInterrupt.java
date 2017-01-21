@@ -17,7 +17,7 @@ class ReturnFromInterruptImplicit extends Operation {
         cpu.P.orByte((byte) 0x20);
         cpu.pullPCFromStack();
 
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

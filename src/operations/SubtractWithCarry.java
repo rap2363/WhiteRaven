@@ -52,7 +52,7 @@ abstract class SubtractWithCarryOperationBase extends Operation {
         }
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 
@@ -91,7 +91,7 @@ class SubtractWithCarryAbsoluteX extends SubtractWithCarryOperationBase {
 
         byte[] bytes = cpu.readAfterPC(numBytes - 1);
         if (Utilities.getOverflowFlag(bytes[1], cpu.X.readAsByte(), false)) {
-            cpu.cycles++;
+            cpu.cycleCount++;
         }
     }
 }
@@ -107,7 +107,7 @@ class SubtractWithCarryAbsoluteY extends SubtractWithCarryOperationBase {
 
         byte[] bytes = cpu.readAfterPC(numBytes - 1);
         if (Utilities.getOverflowFlag(bytes[1], cpu.Y.readAsByte(), false)) {
-            cpu.cycles++;
+            cpu.cycleCount++;
         }
     }
 }
@@ -131,7 +131,7 @@ class SubtractWithCarryIndirectY extends SubtractWithCarryOperationBase {
         int targetAddress = Utilities.toUnsignedValue(bytes[0]);
         byte low = cpu.memory.read(targetAddress);
         if (Utilities.getOverflowFlag(low, cpu.Y.readAsByte(), false)) {
-            cpu.cycles++;
+            cpu.cycleCount++;
         }
     }
 }

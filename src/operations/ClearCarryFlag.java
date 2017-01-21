@@ -16,7 +16,7 @@ class ClearCarryFlagImplicit extends Operation {
         cpu.P.clearCarryFlag();
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

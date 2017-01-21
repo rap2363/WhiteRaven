@@ -16,7 +16,7 @@ class ClearOverflowFlagImplicit extends Operation {
         cpu.P.clearOverflowFlag();
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

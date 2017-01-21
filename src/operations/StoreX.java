@@ -19,7 +19,7 @@ abstract class StoreXOperationBase extends Operation {
         cpu.memory.write(address, cpu.X.readAsByte());
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

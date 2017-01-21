@@ -33,7 +33,7 @@ public abstract class BooleanLogicOperation extends Operation {
         }
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 
     protected abstract void operation(CPU cpu, byte value);

@@ -30,7 +30,7 @@ abstract class JumpOperationBase extends Operation {
             cpu.PC.write(targetAddress);
         }
 
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

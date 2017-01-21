@@ -44,7 +44,7 @@ abstract class ArithmeticShiftLeftOperationBase extends Operation {
         }
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 
@@ -78,7 +78,7 @@ class ArithmeticShiftLeftImplicit extends ArithmeticShiftLeftOperationBase {
         }
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

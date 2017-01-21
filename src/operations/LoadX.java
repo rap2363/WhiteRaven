@@ -32,7 +32,7 @@ abstract class LoadXOperationBase extends Operation {
         }
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 
@@ -71,7 +71,7 @@ class LoadXAbsoluteY extends LoadXOperationBase {
 
         byte[] bytes = cpu.readAfterPC(numBytes - 1);
         if (Utilities.getOverflowFlag(bytes[1], cpu.Y.readAsByte(), false)) {
-            cpu.cycles++;
+            cpu.cycleCount++;
         }
     }
 }

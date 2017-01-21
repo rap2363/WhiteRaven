@@ -16,7 +16,7 @@ class SetCarryImplicit extends Operation {
         cpu.P.setCarryFlag();
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 

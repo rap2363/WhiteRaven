@@ -16,7 +16,7 @@ class SetDecimalModeImplicit extends Operation {
         cpu.P.setDecimalModeFlag();
 
         cpu.PC.incrementBy(numBytes);
-        cpu.cycles += cycles;
+        cpu.cycleCount += cycles;
     }
 }
 
