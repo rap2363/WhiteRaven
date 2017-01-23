@@ -200,9 +200,9 @@ public class Cartridge {
                     byte s2 = (byte) ((b2 >> (8 - col)) & 0x01);
                     if (s1 == 0 && s2 == 0) {
                         s += ". ";
-                    } else if (s1 == 0 && s2 == 1) {
-                        s += "* ";
                     } else if (s1 == 1 && s2 == 0) {
+                        s += "* ";
+                    } else if (s1 == 0 && s2 == 1) {
                         s += "@ ";
                     } else if (s1 == 1 && s2 == 1){
                         s += "$ ";
