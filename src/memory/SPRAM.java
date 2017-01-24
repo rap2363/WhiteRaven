@@ -6,7 +6,7 @@ package memory;
  */
 public class SPRAM extends MemoryMap {
     private static final int SPRAM_NUM_BYTES = 0x100;
-    public int address = 0x0;
+    public int currentAddress = 0x0;
 
     public SPRAM() {
         super(SPRAM_NUM_BYTES);
@@ -23,11 +23,10 @@ public class SPRAM extends MemoryMap {
     }
 
     public void dmaWrite(byte[] values) {
-        if (values.length != 0x100) {
-            System.err.println("SPRAM size is exactly 256 bytes!");
-        }
-        for (int i = 0; i < size(); i++) {
-            this.write(i + address, values[i]);
-        }
+        this.write(currentAddress, values);
+    }
+
+    public void setCurrentAddress(int address) {
+        this.currentAddress = address;
     }
 }

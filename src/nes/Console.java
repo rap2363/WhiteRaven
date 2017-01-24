@@ -24,6 +24,7 @@ public class Console {
         consoleMemory = ConsoleMemory.bootFromCartridge(cartridge);
         cpu = new CPU(consoleMemory);
         ppu = new PPU(consoleMemory);
+        ppu.setMirroringMode(cartridge.getMirroringMode());
     }
 
     public static void main(String[] args) {
