@@ -284,6 +284,11 @@ public class CPU extends Processor {
     @Override
     public void execute() {
         handleInterrupt();
+        if (this.memory.dma()) {
+            this.memory.executeDma();
+            this.cycleCount += 512; // Stalls the CPU for 512 cycles.
+            return;
+        }
 
         byte opcode = this.memory.read(this.PC.read());
         Operation op = this.operationMap.get(opcode);
@@ -295,28 +300,7 @@ public class CPU extends Processor {
     }
 
     public static void main(String[] args) {
-        CPU cpu = new CPU(ConsoleMemory.bootFromCartridge(null));
-        cpu.P.write(0x20);
-        cpu.SP.write(0xFF);
-        cpu.PC.write(0x0600);
-
-        cpu.memory.write(0x0600, (byte) 0xA9);
-        cpu.memory.write(0x0601, (byte) 0x01);
-        cpu.memory.write(0x0602, (byte) 0x85);
-        cpu.memory.write(0x0603, (byte) 0xf0);
-        cpu.memory.write(0x0604, (byte) 0xa9);
-        cpu.memory.write(0x0605, (byte) 0xcc);
-        cpu.memory.write(0x0606, (byte) 0x85);
-        cpu.memory.write(0x0607, (byte) 0xf1);
-        cpu.memory.write(0x0608, (byte) 0x6c);
-        cpu.memory.write(0x0609, (byte) 0xf0);
-        cpu.memory.write(0x060a, (byte) 0x00);
-
-        System.out.println(cpu.state());
-        for (int i = 0; i < 5; i++) {
-            cpu.execute();
-            System.out.println(cpu.state());
-        }
-        System.out.println(String.format("0x%02x", cpu.memory.read(0x0306)));
+        byte value = (byte) 0x00c3;
+        System.out.println(String.format(Integer.toHexString(Utilities.toUnsignedValue(value) * 0x100)));
     }
 }

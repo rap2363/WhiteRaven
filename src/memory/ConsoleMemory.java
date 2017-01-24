@@ -1,6 +1,7 @@
 package memory;
 
 import nes.Cartridge;
+import operations.Utilities;
 
 /**
  * This object manages all reads and writes into main memory. It acts similarly to virtual memory and as a layer
@@ -28,6 +29,7 @@ public class ConsoleMemory extends MemoryMap {
     private ConsoleMemory(final Cartridge c) {
         super(0);
         this.cartridge = c;
+        this.vram.setMirroringMode(c.getMirroringMode());
     }
 
     public static ConsoleMemory bootFromCartridge(final Cartridge cartridge) {
@@ -103,5 +105,23 @@ public class ConsoleMemory extends MemoryMap {
 
     public int readAddressLatch() {
         return this.ioRegisterMemory.ppuAddressLatch.read();
+    }
+
+    /**
+     * Gets bubbled back up to the CPU
+     *
+     * @return
+     */
+    public boolean dma() {
+        return this.ioRegisterMemory.dmaFlag;
+    }
+
+    /**
+     * Execute a DMA. This means we take 512 cycles from the CPU to transfer 256 bytes from the address in 0x4014 x 100
+     * directly to sprite RAM.
+     */
+    public void executeDma() {
+        int startingAddress = Utilities.toUnsignedValue(this.read(0x4014)) * 0x100;
+        this.sram.dmaWrite(this.read(startingAddress, 256));
     }
 }

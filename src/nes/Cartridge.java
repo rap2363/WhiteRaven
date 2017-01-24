@@ -121,6 +121,10 @@ public class Cartridge {
         return chrRomBanks[n];
     }
 
+    public MirroringMode getMirroringMode() {
+        return this.mirroringMode;
+    }
+
     /**
      * Read a byte from the PRG-ROM address space
      *

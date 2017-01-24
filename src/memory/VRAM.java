@@ -1,5 +1,7 @@
 package memory;
 
+import nes.MirroringMode;
+
 /**
  * This is the main Video RAM of the PPU where the sprites and background images are held. The first 0x2000 bytes
  * of VRAM are handled by CHR-ROM in the loaded Cartridge, so VRAM only ends up handling the name and attribute tables
@@ -37,6 +39,10 @@ public class VRAM extends MemoryMap {
     public int size() {
         return 0x10000;
     }
+
+    public void setMirroringMode(MirroringMode mirroringMode) {
+        this.nameTableMemory.setMirroringMode(mirroringMode);
+    }
 }
 
 /**
@@ -45,19 +51,44 @@ public class VRAM extends MemoryMap {
  */
 class NameTableMemory extends MemoryMap {
     private static final int NAME_TABLE_SIZE = 0x1000;
+    private MirroringMode mirroringMode = MirroringMode.HORIZONTAL;
 
     public NameTableMemory() {
         super(NAME_TABLE_SIZE);
     }
 
+    public void setMirroringMode(MirroringMode mirroringMode) {
+        this.mirroringMode = mirroringMode;
+    }
+
     @Override
     public byte read(int address) {
-        return this.memory[address % size()];
+        return this.memory[mapAddress(address) % size()];
     }
 
     @Override
     public void write(int address, byte value) {
-        this.memory[address % size()] = value;
+        this.memory[mapAddress(address) % size()] = value;
+    }
+
+    private int mapAddress(int address) {
+        // Map the $2000 and $2400 to the first physical name table, and $2800 and $2C00 to the second
+        if (mirroringMode == MirroringMode.HORIZONTAL) {
+            if (address < 0x400) {
+                address %= 0x200;
+            } else {
+                address = address % 0x200 + 0x800;
+            }
+        }
+        // Map the $2000 and $2800 to the first physical name table, and $2400 and $2C00 to the second
+        else if (mirroringMode == MirroringMode.VERTICAL) {
+            address %= 0x800;
+        // Map $2000, $2400, $2800, and $2C00 all to the same name table
+        } else if (mirroringMode == MirroringMode.SINGLE) {
+            address %= 0x400;
+        }
+
+        return address;
     }
 }
 

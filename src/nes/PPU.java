@@ -10,6 +10,7 @@ public class PPU extends Processor {
     private int scanlineNumber;
     private int column;
     private int address;
+    private MirroringMode mirroringMode = MirroringMode.HORIZONTAL;
 
     // Values from PPUControl
     private boolean generateNMI;
@@ -57,9 +58,10 @@ public class PPU extends Processor {
     // Across and going down (add 1, add 32)
     private static int[] tableIncrements = {0x01, 0x20};
 
-    private static final int NUM_VISIBLE_SCANLINES = 240;
     private static final int NUM_TOTAL_SCANLINES = 261;
     private static final int PPU_CYCLES_PER_SCANLINE = 341;
+    private static final int SCREEN_WIDTH = 256;
+    private static final int SCREEN_HEIGHT = 240;
 
     public static final int[][] systemPalleteColors = {
             {0x75, 0x75, 0x75}, // 0x00
@@ -161,6 +163,10 @@ public class PPU extends Processor {
         scrollY = 0;
     }
 
+    public void setMirroringMode(MirroringMode mirroringMode) {
+        this.mirroringMode = mirroringMode;
+    }
+
     @Override
     public void execute() {
 
@@ -168,16 +174,20 @@ public class PPU extends Processor {
 
     /**
      * Return the pallete index (4-bits) of a given background pixel at x,y. This method will return a number
-     * from 0 -> F.
+     * from 0 -> F. The x,y specified is a coordinate pair from (0,0) --> (511, 479). This method will use the
+     * correct nametable according to the current mirroring mode.
      *
      * @param x
      * @param y
      * @return
      */
     private int backgroundPixelPalleteIndex(int x, int y) {
+        int nameTableAddress = getNameTableAddress(x, y);
+        x %= SCREEN_WIDTH;
+        y %= 240;
         int nameTableTile = getNameTableTileNumber(x, y);
 
-        byte b = this.consoleMemory.readFromPPU(nameTableAddresses[nameTableAddressIndex] + nameTableTile);
+        byte b = this.consoleMemory.readFromPPU(nameTableAddress + nameTableTile);
         byte bLow = this.consoleMemory.readFromPPU(patternTableAddresses[bgTableIndex] + b + y % 8);
         byte bHigh = this.consoleMemory.readFromPPU(patternTableAddresses[bgTableIndex] + b + y % 8 + 0x08);
 
@@ -207,6 +217,26 @@ public class PPU extends Processor {
         int fullColorIndex = (attributeTwoBitColor << 2) | bHigh << 1 | bLow;
 
         return fullColorIndex;
+    }
+
+    /**
+     * Return the correct name table address according to the mirroring mode.
+     *
+     * @param x
+     * @param y
+     * @return
+     */
+    private int getNameTableAddress(int x, int y) {
+        int quadrant = 0; // upper left
+        if (x >= SCREEN_WIDTH && y < SCREEN_HEIGHT) {
+            quadrant = 1; // upper right
+        } else if (x < SCREEN_WIDTH && y >= SCREEN_HEIGHT) {
+            quadrant = 2; // lower left
+        } else if (x >= SCREEN_WIDTH && y >= SCREEN_HEIGHT) {
+            quadrant = 3;
+        }
+
+        return nameTableAddresses[quadrant];
     }
 
     /**

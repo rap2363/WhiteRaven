@@ -21,7 +21,7 @@ public class IORegisterMemory extends MemoryMap {
     private static final int PPU_ADDRESS = 0x0006;
     private static final int PPU_DATA = 0x0007;
 
-    boolean dmaFlag = false;
+    public boolean dmaFlag = false;
 
     // Second set of registers (APU, controllers, DMA, etc.)
     // TODO: implement these registers!
@@ -63,7 +63,7 @@ public class IORegisterMemory extends MemoryMap {
                     ppuScrollLatch.write(value);
                 case SPR_DATA:
                     this.memory[SPR_ADDRESS]++;
-                case SPR_ADDRESS:
+                case SPR_DMA:
                     dmaFlag = true;
                 default:
                     memory[address % numPpuRegisters] = value;
