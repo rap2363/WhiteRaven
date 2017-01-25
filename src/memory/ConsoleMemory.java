@@ -21,7 +21,7 @@ public class ConsoleMemory extends MemoryMap {
     private CPURAM cpuram = new CPURAM();
     private VRAM vram = new VRAM();
     private SPRAM sram = new SPRAM();
-    private IORegisterMemory ioRegisterMemory = new IORegisterMemory();
+    private IORegisterMemory ioRegisterMemory = new IORegisterMemory(this);
     private Cartridge cartridge;
 
     private static final int addressableMemorySize = 0x10000;
@@ -91,20 +91,13 @@ public class ConsoleMemory extends MemoryMap {
      * @param address
      * @param value
      */
-    public void writeIntoPPU(int address, byte value) {
+    public void writeToPPU(int address, byte value) {
         address %= addressableMemorySize;
         if (address < this.cartridge.CHR_ROM_BANK_SIZE) {
             this.cartridge.writeCHRROM(address, value);
+        } else {
+            this.vram.write(address, value);
         }
-        this.vram.write(address, value);
-    }
-
-    public int readScrollLatch() {
-        return this.ioRegisterMemory.ppuScrollLatch.read();
-    }
-
-    public int readAddressLatch() {
-        return this.ioRegisterMemory.ppuAddressLatch.read();
     }
 
     /**
@@ -123,5 +116,15 @@ public class ConsoleMemory extends MemoryMap {
     public void executeDma() {
         int startingAddress = Utilities.toUnsignedValue(this.read(0x4014)) * 0x100;
         this.sram.dmaWrite(this.read(startingAddress, 256));
+        this.ioRegisterMemory.resetDmaFlag();
+    }
+
+    /**
+     * Return the VRAM address maintained by I/O register memory
+     *
+     * @return
+     */
+    public int getVramAddress() {
+        return this.ioRegisterMemory.vramAddress;
     }
 }
