@@ -132,10 +132,10 @@ public class PPU extends Processor {
             {0x00, 0x00, 0x00}, // 0x3E
             {0x00, 0x00, 0x00}  // 0x3F
     };
-    ConsoleMemory consoleMemory;
+    ConsoleMemory memory;
 
     public PPU(final ConsoleMemory consoleMemory) {
-        this.consoleMemory = consoleMemory;
+        this.memory = consoleMemory;
         cycleCount = 0;
         evenFlag = true;
 
@@ -187,9 +187,9 @@ public class PPU extends Processor {
         y %= 240;
         int nameTableTile = getNameTableTileNumber(x, y);
 
-        byte b = this.consoleMemory.readFromPPU(nameTableAddress + nameTableTile);
-        byte bLow = this.consoleMemory.readFromPPU(patternTableAddresses[bgTableIndex] + b + y % 8);
-        byte bHigh = this.consoleMemory.readFromPPU(patternTableAddresses[bgTableIndex] + b + y % 8 + 0x08);
+        byte b = this.memory.readFromPPU(nameTableAddress + nameTableTile);
+        byte bLow = this.memory.readFromPPU(patternTableAddresses[bgTableIndex] + b + y % 8);
+        byte bHigh = this.memory.readFromPPU(patternTableAddresses[bgTableIndex] + b + y % 8 + 0x08);
 
         bLow >>= (7 - x % 8);
         bHigh >>= (7 - x % 8);
@@ -206,7 +206,7 @@ public class PPU extends Processor {
             attributeSquareNumber = 3;
         }
 
-        byte attributeTwoBitColor = (byte) (this.consoleMemory.readFromPPU(attributeTableAddresses[attributeTileNumber])
+        byte attributeTwoBitColor = (byte) (this.memory.readFromPPU(attributeTableAddresses[attributeTileNumber])
                 >> (attributeSquareNumber * 2));
 
         attributeTwoBitColor &= 0x0003;
@@ -268,7 +268,7 @@ public class PPU extends Processor {
      * 7:   Generate an NMI at start of the VBLANK
      */
     private void readCtrl() {
-        final byte ctrl = consoleMemory.read(PPU_CTRL);
+        final byte ctrl = memory.read(PPU_CTRL);
 
         nameTableAddressIndex = ctrl & 0x03;
         tableIncrementsIndex = (ctrl >> 2) & 0x01;
@@ -291,7 +291,7 @@ public class PPU extends Processor {
      * 7: Emphasize blue
      */
     private void readMask() {
-        final byte ctrl = consoleMemory.read(PPU_MASK);
+        final byte ctrl = memory.read(PPU_MASK);
 
         greyscale = (ctrl & 0x01) == 0x01;
         leftBG = (ctrl >> 1 & 0x01) == 0x01;
@@ -317,22 +317,13 @@ public class PPU extends Processor {
         value |= spriteZeroHit ? 0x40 : 0x00;
         value |= verticalBlank ? 0x80 : 0x00;
 
-        consoleMemory.write(PPU_STATUS, value);
+        memory.write(PPU_STATUS, value);
     }
 
     /**
-     * Read from the X,Y scroll latch to obtain our X and Y values for the scroll position.
+     * Get the current VRAM address
      */
-    private void readScroll() {
-        int xy = consoleMemory.readScrollLatch();
-        scrollX = (byte) (xy >> 7);
-        scrollY = (byte) xy;
-    }
-
-    /**
-     * Read the PPU_ADDRESS in from the address latch
-     */
-    private void readAddress() {
-        address = consoleMemory.readAddressLatch();
+    private void readVramAddress() {
+        address = memory.getVramAddress();
     }
 }
