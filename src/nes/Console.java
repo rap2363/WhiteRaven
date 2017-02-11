@@ -50,7 +50,6 @@ public class Console {
                             e.printStackTrace();
                         }
                     }
-//                    System.out.println(console.cpu.singleLineState());
                 }
             }
         }, 0, FRAME_TIME);

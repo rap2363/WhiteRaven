@@ -236,8 +236,12 @@ public class IORegisterMemory extends MemoryMap {
      */
     private void writeToAddress(byte value) {
         if (firstWrite) {
+            // t: .FEDCBA ........ = d: ..FEDCBA
+            // t: X...... ........ = 0
             tempVramAddress = (tempVramAddress & 0x80FF) + ((value << 8) & 0x3F00);
         } else {
+            // t: ....... HGFEDCBA = d: HGFEDCBA
+            // v                   = t
             tempVramAddress = (tempVramAddress & 0xFF00) + (value & 0x00FF);
             vramAddress = tempVramAddress;
         }
@@ -257,8 +261,7 @@ public class IORegisterMemory extends MemoryMap {
      * This writes the byte to $2007 in main memory as well as vramAddress in PPU memory.
      */
     private void writeToData(byte value) {
-        final int effectiveVramAddress = vramAddress & 0x7FFF;
-        this.consoleMemory.writeToPPU(effectiveVramAddress, value);
+        this.consoleMemory.writeToPPU(vramAddress, value);
         this.memory[PPU_DATA] = value;
         vramAddress += ((readFromControl() >> 2) & 0x01) == 0 ? 1 : 32;
     }
@@ -288,7 +291,7 @@ public class IORegisterMemory extends MemoryMap {
      */
     public void copyVertical() {
         // v: IHGF.ED CBA..... = t: IHGF.ED CBA.....
-        vramAddress = (vramAddress & 0x841F) + (tempVramAddress & 0x7BE0);
+        vramAddress = (vramAddress & 0x041F) + (tempVramAddress & 0xFBE0);
     }
 
     /**

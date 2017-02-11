@@ -200,10 +200,10 @@ public class Cartridge {
                 byte b2 = patternTable[secondTileIndex + row];
                 String s = "";
                 for (int col = 0; col < 8; col++) {
-                    byte s1 = (byte) ((b1 >> (8 - col)) & 0x01);
-                    byte s2 = (byte) ((b2 >> (8 - col)) & 0x01);
+                    byte s1 = (byte) ((b1 >> (7 - col)) & 0x01);
+                    byte s2 = (byte) ((b2 >> (7 - col)) & 0x01);
                     if (s1 == 0 && s2 == 0) {
-                        s += ". ";
+                        s += "  ";
                     } else if (s1 == 1 && s2 == 0) {
                         s += "* ";
                     } else if (s1 == 0 && s2 == 1) {

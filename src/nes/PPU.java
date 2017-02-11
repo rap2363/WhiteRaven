@@ -245,7 +245,12 @@ public class PPU extends Processor {
      * 337-340: Two bytes are fetched, but for unknown purposes, so we just idle.
      */
     private void renderScanline(int scanlineNumber, int scanlineCycle) {
+        if (!renderingEnabled()) {
+            return;
+        }
+
         if (scanlineCycle == 0 || scanlineCycle >= 337) {
+            renderEightPixels(scanlineNumber, scanlineCycle);
             return;
         }
 
@@ -253,8 +258,8 @@ public class PPU extends Processor {
             // Fetch background tiles and render
             int tileCycle = scanlineCycle % 8;
             if (tileCycle == 0) {
+                renderEightPixels(scanlineNumber, scanlineCycle);
                 this.memory.incrementHorizontal();
-                renderPixels(scanlineNumber, scanlineCycle);
             } else if (tileCycle == 1) {
                 fetchNameTableByte();
             } else if (tileCycle == 3) {
@@ -276,35 +281,36 @@ public class PPU extends Processor {
     }
 
     /**
-     * Renders eight pixels from (x - 7, y) --> (x, y).
+     * Renders eight pixels from (x, y) --> (x + 7, y).
      */
-    private void renderPixels(int y, int x) {
-        if (y < 0 || y >= SCREEN_HEIGHT || x - 8 < 0 || x >= SCREEN_WIDTH) {
+    private void renderEightPixels(int y, int x) {
+        if (y < 0 || y >= SCREEN_HEIGHT || x < 0 || x + 7 >= SCREEN_WIDTH) {
             return;
         }
 
         int attributeSquareX = x % 0x20; // Four 8 x 8 tiles = 32 = 0x20
         int attributeSquareY = y % 0x20;
         int attributeSquareNumber = 0;
-        if (attributeSquareX > 0x10 && attributeSquareY < 0x10) {
+        if (attributeSquareX >= 0x10 && attributeSquareY < 0x10) {
             attributeSquareNumber = 1;
-        } else if (attributeSquareX < 0x10 && attributeSquareY > 0x10) {
+        } else if (attributeSquareX < 0x10 && attributeSquareY >= 0x10) {
             attributeSquareNumber = 2;
-        } else if (attributeSquareX > 0x10 && attributeSquareY > 0x10) {
+        } else if (attributeSquareX >= 0x10 && attributeSquareY >= 0x10) {
             attributeSquareNumber = 3;
         }
 
         byte attributeTwoBitColor = (byte) ((attributeTableBytes.peek() >> (attributeSquareNumber * 2)) & 0x03);
 
         // Render the eight pixels
-        for (int i = 7; i >= 0; i--) {
-            byte bHigh = (byte) (highBGTileBytes.peek() >> i & 0x01);
-            byte bLow = (byte) (lowBGTileBytes.peek() >> i & 0x01);
+        for (int i = 0; i < 8; i++) {
+            byte bHigh = (byte) (highBGTileBytes.peek() >> (7 - i) & 0x01);
+            byte bLow = (byte) (lowBGTileBytes.peek() >> (7 - i) & 0x01);
             // Now we take the attribute tile 2-bits and concatenate them with the bits from the 8x8 tile:
             byte bgPalletePixelIndex = (byte) ((attributeTwoBitColor << 2) | bHigh << 1 | bLow);
             int bgRGB = getColorFromPalleteIndex(bgPalletePixelIndex);
-            backgroundImage.setRGB(x - i, y, bgRGB);
+            backgroundImage.setRGB(x + i, y, bgRGB);
         }
+//        System.out.println(x + ", " + y + " - " + attributeSquareX + ", " + attributeSquareY + ": " + nameTableBytes.peek() + ", " + lowBGTileBytes.peek() + ", " + highBGTileBytes.peek());
     }
 
     /**
