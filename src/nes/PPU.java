@@ -1,6 +1,12 @@
 package nes;
 
 import memory.ConsoleMemory;
+import operations.Utilities;
+
+import java.awt.image.BufferedImage;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Models the PPU architecture
@@ -8,9 +14,11 @@ import memory.ConsoleMemory;
 public class PPU extends Processor {
     private boolean evenFlag;
     private int scanlineNumber;
-    private int column;
+    private int scanlineCycle;
     private int address;
     private MirroringMode mirroringMode = MirroringMode.HORIZONTAL;
+    private BufferedImage backgroundImage;
+    public boolean imageReady;
 
     // Values from PPUControl
     private boolean generateNMI;
@@ -31,29 +39,26 @@ public class PPU extends Processor {
     private boolean greyscale;
 
     // PPUStatus flags
-    private boolean verticalBlank;
+    public boolean verticalBlank;
+    public boolean triggerVerticalBlank;
     private boolean spriteZeroHit;
     private boolean spriteOverflow;
 
-    // Scroll registers
-    private byte scrollX;
-    private byte scrollY;
+    private static final int PALLETE_OFFSET = 0x3F00;
 
     // PPU register addresses
     private static final int PPU_CTRL = 0x2000;
     private static final int PPU_MASK = 0x2001;
     private static final int PPU_STATUS = 0x2002;
-    private static final int SPR_ADDRESS = 0x2003;
-    private static final int SPR_DATA = 0x2004;
-    private static final int PPU_SCROLL = 0x2005;
-    private static final int PPU_ADDRESS = 0x2006;
-    private static final int PPU_DATA = 0x2007;
+
+    private byte nameTableByte;
+    private byte attributeTableByte;
+    private byte lowBGTileByte;
+    private byte highBGTileByte;
 
     private static int[] patternTableAddresses = {0x0000, 0x1000};
     private static int[] nameTableAddresses = {0x2000, 0x2400, 0x2800, 0x2C00};
     private static int[] attributeTableAddresses = {0x23C0, 0x27C0, 0x2BC0, 0x2FC0};
-    private static int IMAGE_PALLETE_OFFSET = 0x3F00;
-    private static int SPRITE_PALLETE_OFFSET = 0x3F10;
 
     // Across and going down (add 1, add 32)
     private static int[] tableIncrements = {0x01, 0x20};
@@ -62,6 +67,7 @@ public class PPU extends Processor {
     private static final int PPU_CYCLES_PER_SCANLINE = 341;
     private static final int SCREEN_WIDTH = 256;
     private static final int SCREEN_HEIGHT = 240;
+    private static final int NUM_VISIBLE_SCANLINES = SCREEN_HEIGHT;
 
     public static final int[][] systemPalleteColors = {
             {0x75, 0x75, 0x75}, // 0x00
@@ -136,44 +142,242 @@ public class PPU extends Processor {
 
     public PPU(final ConsoleMemory consoleMemory) {
         this.memory = consoleMemory;
+        scanlineNumber = 241;
+        scanlineCycle = 0;
         cycleCount = 0;
         evenFlag = true;
+        backgroundImage = new BufferedImage(SCREEN_WIDTH, SCREEN_HEIGHT, BufferedImage.TYPE_INT_RGB);
+        imageReady = false;
 
         generateNMI = true;
         normalSpriteSize = true;
         bgTableIndex = 0;
         spriteTableAddressIndex = 0;
         tableIncrementsIndex = 0;
-        nameTableAddressIndex = 0;
 
-        green = true;
-        blue = true;
-        red = true;
-        showSprites = true;
-        showBG = true;
-        leftSprites = true;
-        leftBG = true;
-        greyscale = true;
+        green = false;
+        blue = false;
+        red = false;
+        showSprites = false;
+        showBG = false;
+        leftSprites = false;
+        leftBG = false;
+        greyscale = false;
 
         verticalBlank = false;
+        triggerVerticalBlank = false;
         spriteZeroHit = false;
         spriteOverflow = false;
 
-        scrollX = 0;
-        scrollY = 0;
+        nameTableByte = 0x0;
+        attributeTableByte = 0x0;
+        lowBGTileByte = 0x0;
+        highBGTileByte = 0x0;
     }
 
     public void setMirroringMode(MirroringMode mirroringMode) {
         this.mirroringMode = mirroringMode;
     }
 
+    /**
+     * The PPU has an associated scanline number [0, 261], scanlineCycle number [0, 255], and a cycleCount at any given
+     * execute(). Only scanlines 1-240 render pixels. Depending on the scanline number and scanlineCycle number, we take
+     * different actions which are handled in executePixel(). After executePixel() we increment the scanlineCycle and
+     * scanlineNumber. The PPU uses 341 cycles for each scanline, so one frame takes 341 * 262 = 89,342 cycles.
+     *
+     * scanlineNumber:
+     *
+     * 0-239:   Render 240 256-pixel scanlines to the screen (an image buffer).
+     * 240:     Idle
+     * 241:     The PPU idles during this scanline
+     * 242-260: On the first cycle of scanline 242, set the VBlank flag, which will generate an NMI in the CPU.
+     * 261:     Make the same accesses we would on a visible scanline, but don't render any actual pixels.
+     *
+     * Depending on the scanlineCycle, we take different actions in updating the vramAddress (see renderScanline())
+     *
+     */
     @Override
     public void execute() {
+        readCtrl();
+        readMask();
 
+        if (scanlineNumber == NUM_TOTAL_SCANLINES - 1) {
+            preRenderScanline(scanlineCycle);
+        } else if (scanlineNumber < NUM_VISIBLE_SCANLINES) {
+            renderScanline(scanlineNumber, scanlineCycle);
+        } else if (scanlineNumber == NUM_VISIBLE_SCANLINES + 1) {
+            postRenderScanline(scanlineCycle);
+        } // else the PPU idles
+
+        // Increment the scanlineNumber and scanlineCycle
+        scanlineCycle = (scanlineCycle + 1) % PPU_CYCLES_PER_SCANLINE;
+        if (scanlineCycle == 0) {
+            scanlineNumber = (scanlineNumber + 1) % NUM_TOTAL_SCANLINES;
+        }
+
+        writeStatus();
     }
 
     /**
-     * Return the pallete index (4-bits) of a given background pixel at x,y. This method will return a number
+     * This function is called specifically before rendering. All memory accesses made are the same, but no pixels
+     * are actually pushed to the screen.
+     */
+    private void preRenderScanline(int scanlineCycle) {
+        if (scanlineCycle == 1) {
+            verticalBlank = false;
+            spriteZeroHit = false;
+            spriteOverflow = false;
+        }
+        renderScanline(-1, scanlineCycle);
+        if (renderingEnabled() && scanlineCycle >= 280 && scanlineCycle <= 304) {
+            this.memory.copyVertical();
+        }
+    }
+
+    /**
+     * Render a full scanline. One call of this function will render one pixel on the scanlineNumber. Note that we
+     * fetch the tile data for sprites in the next scanline during the 257-320 cycles of the current scanline.
+     *
+     * scanlineCycle:
+     *
+     * 0: idle
+     * 1-256: Fetch tile data every 8 cycles and render
+     * 257-320: Fetch the sprite tile data for the next scanline
+     * 321-336: First two BG tiles for the next scanline are fetched
+     * 337-340: Two bytes are fetched, but for unknown purposes, so we just idle.
+     */
+    private void renderScanline(int scanlineNumber, int scanlineCycle) {
+        if (scanlineCycle == 0 || scanlineCycle >= 337) {
+            return;
+        }
+
+        if (scanlineCycle < 257 || scanlineCycle > 321) {
+            // Fetch background tiles and render
+            int tileCycle = scanlineCycle % 8;
+            if (tileCycle == 0) {
+                this.memory.incrementHorizontal();
+                renderPixels(scanlineNumber, scanlineCycle);
+            } else if (tileCycle == 1) {
+                nameTableByte = fetchNameTableByte();
+            } else if (tileCycle == 3) {
+                attributeTableByte = fetchAttributeTableByte();
+            } else if (tileCycle == 5) {
+                lowBGTileByte = fetchLowBGTileByte();
+            } else if (tileCycle == 7) {
+                highBGTileByte = fetchHighBGTileByte();
+            }
+        } else if (renderingEnabled() && scanlineCycle == 257) {
+            this.memory.copyHorizontal();
+        } else {
+            // Fetch the sprite data for the next scanline
+        }
+
+        if (renderingEnabled() && scanlineCycle == 256) {
+            this.memory.incrementVertical();
+        }
+    }
+
+    /**
+     * Renders eight pixels from (x - 7, y) --> (x, y).
+     */
+    private void renderPixels(int y, int x) {
+        if (y < 0 || y >= SCREEN_HEIGHT || x - 8 < 0 || x >= SCREEN_WIDTH) {
+            return;
+        }
+
+        int attributeSquareX = x % 0x20; // Four 8 x 8 tiles = 32 = 0x20
+        int attributeSquareY = y % 0x20;
+        int attributeSquareNumber = 0;
+        if (attributeSquareX > 0x10 && attributeSquareY < 0x10) {
+            attributeSquareNumber = 1;
+        } else if (attributeSquareX < 0x10 && attributeSquareY > 0x10) {
+            attributeSquareNumber = 2;
+        } else if (attributeSquareX > 0x10 && attributeSquareY > 0x10) {
+            attributeSquareNumber = 3;
+        }
+
+        byte attributeTwoBitColor = (byte) ((attributeTableByte >> (attributeSquareNumber * 2)) & 0x03);
+
+        // Render the eight pixels
+        for (int i = 7; i >= 0; i--) {
+            byte bHigh = (byte) (highBGTileByte >> i & 0x01);
+            byte bLow = (byte) (lowBGTileByte >> i & 0x01);
+            // Now we take the attribute tile 2-bits and concatenate them with the bits from the 8x8 tile:
+            byte bgPalletePixelIndex = (byte) ((attributeTwoBitColor << 2) | bHigh << 1 | bLow);
+            int bgRGB = getColorFromPalleteIndex(bgPalletePixelIndex);
+            backgroundImage.setRGB(x - i, y, bgRGB);
+        }
+    }
+
+    /**
+     * Returns the RGB color value given a pallete index
+     */
+    private int getColorFromPalleteIndex(byte palleteColorIndex) {
+        byte systemColorIndex = this.memory.readFromPPU(Utilities.addByteToInt(PALLETE_OFFSET, palleteColorIndex));
+        int[] rgb = systemPalleteColors[Utilities.toUnsignedValue(systemColorIndex) & 0x3F];
+        int rgbColor = rgb[0] << 16 & 0xFF0000 | rgb[1] << 8 & 0x00FF00 | rgb[2] & 0x0000FF;
+        return rgbColor;
+    }
+
+    /**
+     * Fetch the current name table byte using vramAddress
+     *
+     * @return
+     */
+    private byte fetchNameTableByte() {
+        int tileAddress = 0x2000 | (this.memory.getVramAddress() & 0x0FFF);
+        return this.memory.readFromPPU(tileAddress);
+    }
+
+    /**
+     * Fetch the current attribute table byte using vramAddress
+     *
+     * @return
+     */
+    private byte fetchAttributeTableByte() {
+        int vramAddress = this.memory.getVramAddress();
+        int attributeAddress = 0x23C0 | (vramAddress & 0x0C00) | ((vramAddress >> 4) & 0x38) | ((vramAddress >> 2) & 0x07);
+        return this.memory.readFromPPU(attributeAddress);
+    }
+
+    /**
+     * Fetch the low BG tile byte. We do this by taking the name table byte as an offset from the pattern table
+     * (either 0x0000 or 0x1000). Then we use the fineYScroll to get the specific byte in our 8x8 tile.
+     *
+     * @return
+     */
+    private byte fetchLowBGTileByte() {
+        int patternTable = patternTableAddresses[bgTableIndex];
+        int fineYScroll = this.memory.getFineYScroll();
+        return this.memory.readFromPPU(patternTable + this.nameTableByte * 0x10 + fineYScroll);
+    }
+
+    /**
+     * Fetch the high BG tile byte
+     *
+     * @return
+     */
+    private byte fetchHighBGTileByte() {
+        int patternTable = patternTableAddresses[bgTableIndex];
+        int fineYScroll = this.memory.getFineYScroll();
+        return this.memory.readFromPPU(patternTable + this.nameTableByte * 0x10 + fineYScroll + 0x0008);
+    }
+
+    private void postRenderScanline(int scanlineCycle) {
+        if (scanlineCycle == 1) {
+            verticalBlank = true;
+            triggerVerticalBlank = generateNMI;
+            imageReady = true;
+        }
+    }
+
+    public BufferedImage getImage() {
+        imageReady = false;
+        return backgroundImage;
+    }
+
+    /**
+     * Return the pallete index (4-bits) of a given background pixel at x,y. This method will return a number from
      * from 0 -> F. The x,y specified is a coordinate pair from (0,0) --> (511, 479). This method will use the
      * correct nametable according to the current mirroring mode.
      *
@@ -181,10 +385,10 @@ public class PPU extends Processor {
      * @param y
      * @return
      */
-    private int backgroundPixelPalleteIndex(int x, int y) {
+    private byte backgroundPixelPalleteIndex(int x, int y) {
         int nameTableAddress = getNameTableAddress(x, y);
         x %= SCREEN_WIDTH;
-        y %= 240;
+        y %= SCREEN_HEIGHT;
         int nameTableTile = getNameTableTileNumber(x, y);
 
         byte b = this.memory.readFromPPU(nameTableAddress + nameTableTile);
@@ -194,6 +398,7 @@ public class PPU extends Processor {
         bLow >>= (7 - x % 8);
         bHigh >>= (7 - x % 8);
 
+        int attributeTableAddress = getAttributeTableAddress(x, y);
         int attributeTileNumber = getAttributeTileNumber(x, y);
         int attributeSquareX = x % 0x20; // Four 8 x 8 tiles = 32 = 0x20
         int attributeSquareY = y % 0x20;
@@ -206,7 +411,7 @@ public class PPU extends Processor {
             attributeSquareNumber = 3;
         }
 
-        byte attributeTwoBitColor = (byte) (this.memory.readFromPPU(attributeTableAddresses[attributeTileNumber])
+        byte attributeTwoBitColor = (byte) (this.memory.readFromPPU(attributeTableAddress + attributeTileNumber)
                 >> (attributeSquareNumber * 2));
 
         attributeTwoBitColor &= 0x0003;
@@ -214,13 +419,11 @@ public class PPU extends Processor {
         bLow &= 0x01;
 
         // Now we take the attribute tile 2-bits and concatenate them with the bits from the 8x8 tile:
-        int fullColorIndex = (attributeTwoBitColor << 2) | bHigh << 1 | bLow;
-
-        return fullColorIndex;
+        return (byte) ((attributeTwoBitColor << 2) | bHigh << 1 | bLow);
     }
 
     /**
-     * Return the correct name table address according to the mirroring mode.
+     * Return the correct name table address
      *
      * @param x
      * @param y
@@ -237,6 +440,26 @@ public class PPU extends Processor {
         }
 
         return nameTableAddresses[quadrant];
+    }
+
+    /**
+     * Return the correct attribute table address
+     *
+     * @param x
+     * @param y
+     * @return
+     */
+    private int getAttributeTableAddress(int x, int y) {
+        int quadrant = 0; // upper left
+        if (x >= SCREEN_WIDTH && y < SCREEN_HEIGHT) {
+            quadrant = 1; // upper right
+        } else if (x < SCREEN_WIDTH && y >= SCREEN_HEIGHT) {
+            quadrant = 2; // lower left
+        } else if (x >= SCREEN_WIDTH && y >= SCREEN_HEIGHT) {
+            quadrant = 3;
+        }
+
+        return attributeTableAddresses[quadrant];
     }
 
     /**
@@ -304,6 +527,14 @@ public class PPU extends Processor {
     }
 
     /**
+     * Helper to know whether rendering is currently enabled.
+     * @return
+     */
+    private boolean renderingEnabled() {
+        return showSprites && showBG;
+    }
+
+    /**
      * Write to the PPU_STATUS register.
      * We specifically write information to bits that represent the following:
      * 0-4: *ignored*
@@ -318,12 +549,5 @@ public class PPU extends Processor {
         value |= verticalBlank ? 0x80 : 0x00;
 
         memory.write(PPU_STATUS, value);
-    }
-
-    /**
-     * Get the current VRAM address
-     */
-    private void readVramAddress() {
-        address = memory.getVramAddress();
     }
 }

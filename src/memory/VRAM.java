@@ -37,7 +37,7 @@ public class VRAM extends MemoryMap {
 
     @Override
     public int size() {
-        return 0x10000;
+        return 0x4000;
     }
 
     public void setMirroringMode(MirroringMode mirroringMode) {
@@ -63,21 +63,21 @@ class NameTableMemory extends MemoryMap {
 
     @Override
     public byte read(int address) {
-        return this.memory[mapAddress(address) % size()];
+        return this.memory[mapAddress(address % size())];
     }
 
     @Override
     public void write(int address, byte value) {
-        this.memory[mapAddress(address) % size()] = value;
+        this.memory[mapAddress(address % size())] = value;
     }
 
     private int mapAddress(int address) {
         // Map the $2000 and $2400 to the first physical name table, and $2800 and $2C00 to the second
         if (mirroringMode == MirroringMode.HORIZONTAL) {
-            if (address < 0x400) {
-                address %= 0x200;
+            if (address < 0x800) {
+                address %= 0x400;
             } else {
-                address = address % 0x200 + 0x800;
+                address = address % 0x400 + 0x800;
             }
         }
         // Map the $2000 and $2800 to the first physical name table, and $2400 and $2C00 to the second
