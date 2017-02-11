@@ -29,7 +29,7 @@ public class IORegisterMemory extends MemoryMap {
 
     // Second set of registers (APU, controllers, DMA, etc.)
     // TODO: implement these registers!
-    private static final int SPR_DMA = 0x0014;
+    private static final int SPR_DMA = 0x2014;
 
     public IORegisterMemory(final ConsoleMemory consoleMemory) {
         super(numPpuRegisters + numSecondSetRegisters);
@@ -305,7 +305,7 @@ public class IORegisterMemory extends MemoryMap {
     public void incrementHorizontal() {
         if ((vramAddress & 0x001F) == 31) {
             // Switch horizontal name table
-            vramAddress &= 0xFFE0;
+            vramAddress &= ~0x001F;
             vramAddress ^= 0x0400;
         } else {
             // Increment coarse X

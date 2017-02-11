@@ -1,12 +1,10 @@
 package nes;
 
+import memory.CircularBuffer;
 import memory.ConsoleMemory;
 import operations.Utilities;
 
 import java.awt.image.BufferedImage;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Models the PPU architecture
@@ -51,10 +49,10 @@ public class PPU extends Processor {
     private static final int PPU_MASK = 0x2001;
     private static final int PPU_STATUS = 0x2002;
 
-    private byte nameTableByte;
-    private byte attributeTableByte;
-    private byte lowBGTileByte;
-    private byte highBGTileByte;
+    private CircularBuffer<Byte> nameTableBytes;
+    private CircularBuffer<Byte> attributeTableBytes;
+    private CircularBuffer<Byte> lowBGTileBytes;
+    private CircularBuffer<Byte> highBGTileBytes;
 
     private static int[] patternTableAddresses = {0x0000, 0x1000};
     private static int[] nameTableAddresses = {0x2000, 0x2400, 0x2800, 0x2C00};
@@ -169,10 +167,10 @@ public class PPU extends Processor {
         spriteZeroHit = false;
         spriteOverflow = false;
 
-        nameTableByte = 0x0;
-        attributeTableByte = 0x0;
-        lowBGTileByte = 0x0;
-        highBGTileByte = 0x0;
+        nameTableBytes = new CircularBuffer(2);
+        attributeTableBytes = new CircularBuffer(2);
+        lowBGTileBytes = new CircularBuffer(2);
+        highBGTileBytes = new CircularBuffer(2);
     }
 
     public void setMirroringMode(MirroringMode mirroringMode) {
@@ -258,13 +256,13 @@ public class PPU extends Processor {
                 this.memory.incrementHorizontal();
                 renderPixels(scanlineNumber, scanlineCycle);
             } else if (tileCycle == 1) {
-                nameTableByte = fetchNameTableByte();
+                fetchNameTableByte();
             } else if (tileCycle == 3) {
-                attributeTableByte = fetchAttributeTableByte();
+                fetchAttributeTableByte();
             } else if (tileCycle == 5) {
-                lowBGTileByte = fetchLowBGTileByte();
+                fetchLowBGTileByte();
             } else if (tileCycle == 7) {
-                highBGTileByte = fetchHighBGTileByte();
+                fetchHighBGTileByte();
             }
         } else if (renderingEnabled() && scanlineCycle == 257) {
             this.memory.copyHorizontal();
@@ -296,12 +294,12 @@ public class PPU extends Processor {
             attributeSquareNumber = 3;
         }
 
-        byte attributeTwoBitColor = (byte) ((attributeTableByte >> (attributeSquareNumber * 2)) & 0x03);
+        byte attributeTwoBitColor = (byte) ((attributeTableBytes.peek() >> (attributeSquareNumber * 2)) & 0x03);
 
         // Render the eight pixels
         for (int i = 7; i >= 0; i--) {
-            byte bHigh = (byte) (highBGTileByte >> i & 0x01);
-            byte bLow = (byte) (lowBGTileByte >> i & 0x01);
+            byte bHigh = (byte) (highBGTileBytes.peek() >> i & 0x01);
+            byte bLow = (byte) (lowBGTileBytes.peek() >> i & 0x01);
             // Now we take the attribute tile 2-bits and concatenate them with the bits from the 8x8 tile:
             byte bgPalletePixelIndex = (byte) ((attributeTwoBitColor << 2) | bHigh << 1 | bLow);
             int bgRGB = getColorFromPalleteIndex(bgPalletePixelIndex);
@@ -313,7 +311,8 @@ public class PPU extends Processor {
      * Returns the RGB color value given a pallete index
      */
     private int getColorFromPalleteIndex(byte palleteColorIndex) {
-        byte systemColorIndex = this.memory.readFromPPU(Utilities.addByteToInt(PALLETE_OFFSET, palleteColorIndex));
+        byte systemColorIndex = this.memory.readFromPPU(
+                Utilities.addUnsignedByteToInt(PALLETE_OFFSET, palleteColorIndex));
         int[] rgb = systemPalleteColors[Utilities.toUnsignedValue(systemColorIndex) & 0x3F];
         int rgbColor = rgb[0] << 16 & 0xFF0000 | rgb[1] << 8 & 0x00FF00 | rgb[2] & 0x0000FF;
         return rgbColor;
@@ -324,9 +323,9 @@ public class PPU extends Processor {
      *
      * @return
      */
-    private byte fetchNameTableByte() {
+    private void fetchNameTableByte() {
         int tileAddress = 0x2000 | (this.memory.getVramAddress() & 0x0FFF);
-        return this.memory.readFromPPU(tileAddress);
+        nameTableBytes.push(this.memory.readFromPPU(tileAddress));
     }
 
     /**
@@ -334,10 +333,10 @@ public class PPU extends Processor {
      *
      * @return
      */
-    private byte fetchAttributeTableByte() {
+    private void fetchAttributeTableByte() {
         int vramAddress = this.memory.getVramAddress();
         int attributeAddress = 0x23C0 | (vramAddress & 0x0C00) | ((vramAddress >> 4) & 0x38) | ((vramAddress >> 2) & 0x07);
-        return this.memory.readFromPPU(attributeAddress);
+        attributeTableBytes.push(this.memory.readFromPPU(attributeAddress));
     }
 
     /**
@@ -346,10 +345,12 @@ public class PPU extends Processor {
      *
      * @return
      */
-    private byte fetchLowBGTileByte() {
+    private void fetchLowBGTileByte() {
         int patternTable = patternTableAddresses[bgTableIndex];
         int fineYScroll = this.memory.getFineYScroll();
-        return this.memory.readFromPPU(patternTable + this.nameTableByte * 0x10 + fineYScroll);
+        lowBGTileBytes.push(
+                this.memory.readFromPPU(
+                        patternTable + Utilities.toUnsignedValue(nameTableBytes.peek()) * 0x10 + fineYScroll));
     }
 
     /**
@@ -357,10 +358,12 @@ public class PPU extends Processor {
      *
      * @return
      */
-    private byte fetchHighBGTileByte() {
+    private void fetchHighBGTileByte() {
         int patternTable = patternTableAddresses[bgTableIndex];
         int fineYScroll = this.memory.getFineYScroll();
-        return this.memory.readFromPPU(patternTable + this.nameTableByte * 0x10 + fineYScroll + 0x0008);
+        highBGTileBytes.push(
+                this.memory.readFromPPU(
+                        patternTable + Utilities.toUnsignedValue(nameTableBytes.peek()) * 0x10 + fineYScroll + 0x08));
     }
 
     private void postRenderScanline(int scanlineCycle) {
