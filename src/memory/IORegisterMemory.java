@@ -72,7 +72,6 @@ public class IORegisterMemory extends MemoryMap {
                     return 0x0;
             }
         } else {
-            address -= SECOND_SET_IO_REGISTERS;
             return memory[address - SECOND_SET_IO_REGISTERS];
         }
     }
@@ -121,7 +120,6 @@ public class IORegisterMemory extends MemoryMap {
                     dmaFlag = true;
                     break;
             }
-            address -= SECOND_SET_IO_REGISTERS;
             memory[address - SECOND_SET_IO_REGISTERS] = value;
         }
     }
@@ -154,7 +152,6 @@ public class IORegisterMemory extends MemoryMap {
      */
     private void writeToMask(byte value) {
         this.memory[PPU_MASK] = value;
-        tempVramAddress = value << 11;
     }
 
     /**
@@ -172,11 +169,13 @@ public class IORegisterMemory extends MemoryMap {
     }
 
     /**
-     * Read the byte from PPU_STATUS and reset the firstWrite
+     * Read the byte from PPU_STATUS and reset the firstWrite and Vblank flag
      */
     private byte readFromStatus() {
         firstWrite = true;
-        return this.memory[PPU_STATUS];
+        byte status = this.memory[PPU_STATUS];
+        this.writeToStatus((byte) (status & 0x7F));
+        return status;
     }
 
     /**
@@ -216,11 +215,11 @@ public class IORegisterMemory extends MemoryMap {
         if (firstWrite) {
             // t: ....... ...HGFED = d: HGFED...
             // x:              CBA = d: .....CBA
-            tempVramAddress = (tempVramAddress & 0x7FE0) + ((value >> 3) & 0x001F);
+            tempVramAddress = (tempVramAddress & 0xFFE0) + ((value >> 3) & 0x001F);
             fineXScroll = (byte) (value & 0x07);
         } else {
             // t: CBA..HG FED..... = d: HGFEDCBA
-            tempVramAddress = (tempVramAddress & 0x0C1F) + ((value << 12) & 0x7000) + ((value << 2) & 0x03E0);
+            tempVramAddress = (tempVramAddress & 0x8C1F) + ((value << 12) & 0x7000) + ((value << 2) & 0x03E0);
         }
         firstWrite = !firstWrite;
     }
@@ -258,7 +257,8 @@ public class IORegisterMemory extends MemoryMap {
      * This writes the byte to $2007 in main memory as well as vramAddress in PPU memory.
      */
     private void writeToData(byte value) {
-        this.consoleMemory.writeToPPU(vramAddress, value);
+        final int effectiveVramAddress = vramAddress & 0x7FFF;
+        this.consoleMemory.writeToPPU(effectiveVramAddress, value);
         this.memory[PPU_DATA] = value;
         vramAddress += ((readFromControl() >> 2) & 0x01) == 0 ? 1 : 32;
     }
@@ -281,5 +281,66 @@ public class IORegisterMemory extends MemoryMap {
         }
         vramAddress += ((readFromControl() >> 2) & 0x01) == 0 ? 1 : 32;
         return ppuData;
+    }
+
+    /**
+     * This is called indirectly from the PPU during the pre render scanline
+     */
+    public void copyVertical() {
+        // v: IHGF.ED CBA..... = t: IHGF.ED CBA.....
+        vramAddress = (vramAddress & 0x841F) + (tempVramAddress & 0x7BE0);
+    }
+
+    /**
+     * This is called indirectly from the PPU at the 257th cycle during rendering
+     */
+    public void copyHorizontal() {
+        // v: ....F.. ...EDCBA = t: ....F.. ...EDCBA
+        vramAddress = (vramAddress & 0xFBE0) + (tempVramAddress & 0x041F);
+    }
+
+    /**
+     * Called indirectly from the PPU to increment the horizontal position of the vramAddress
+     */
+    public void incrementHorizontal() {
+        if ((vramAddress & 0x001F) == 31) {
+            // Switch horizontal name table
+            vramAddress &= 0xFFE0;
+            vramAddress ^= 0x0400;
+        } else {
+            // Increment coarse X
+            vramAddress++; // Increment coarse X
+        }
+    }
+
+    /**
+     * Called indirectly from the PPU to increment the Y scroll of the vramAddress.
+     */
+    public void incrementVertical() {
+        if ((vramAddress & 0x7000) != 0x7000) {
+            // If fine Y scroll < 7
+            vramAddress += 0x1000;
+        } else {
+            vramAddress &= ~0x7000;
+            int y = (vramAddress & 0x03E0) >> 5;
+            if (y == 29) {
+                y = 0;
+                vramAddress ^= 0x800; // Switch vertical nametable
+            } else if (y == 31) {
+                y = 0;
+            } else {
+                y++;
+            }
+            vramAddress = (vramAddress & ~0x03E0) | (y << 5);
+        }
+    }
+
+    /**
+     * Calculate and return the fineY scroll from vramAddress (the upper 3 bits)
+     *
+     * @return
+     */
+    public int fineYScroll() {
+        return (vramAddress >> 12) & 0x0007;
     }
 }

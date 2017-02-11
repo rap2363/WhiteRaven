@@ -78,7 +78,7 @@ public class ConsoleMemory extends MemoryMap {
      * @return
      */
     public byte readFromPPU(int address) {
-        address %= addressableMemorySize;
+        address %= 0x4000;
         if (address < this.cartridge.CHR_ROM_BANK_SIZE) {
             return this.cartridge.readCHRROM(address);
         }
@@ -92,7 +92,7 @@ public class ConsoleMemory extends MemoryMap {
      * @param value
      */
     public void writeToPPU(int address, byte value) {
-        address %= addressableMemorySize;
+        address %= 0x4000;
         if (address < this.cartridge.CHR_ROM_BANK_SIZE) {
             this.cartridge.writeCHRROM(address, value);
         } else {
@@ -126,5 +126,25 @@ public class ConsoleMemory extends MemoryMap {
      */
     public int getVramAddress() {
         return this.ioRegisterMemory.vramAddress;
+    }
+
+    public int getFineYScroll() {
+        return this.ioRegisterMemory.fineYScroll();
+    }
+
+    public void copyHorizontal() {
+        this.ioRegisterMemory.copyHorizontal();
+    }
+
+    public void copyVertical() {
+        this.ioRegisterMemory.copyVertical();
+    }
+
+    public void incrementVertical() {
+        this.ioRegisterMemory.incrementVertical();
+    }
+
+    public void incrementHorizontal() {
+        this.ioRegisterMemory.incrementHorizontal();
     }
 }
