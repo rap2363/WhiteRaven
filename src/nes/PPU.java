@@ -2,6 +2,7 @@ package nes;
 
 import memory.CircularBuffer;
 import memory.ConsoleMemory;
+import memory.Sprite;
 import operations.Utilities;
 
 import java.awt.image.BufferedImage;
@@ -15,7 +16,7 @@ public class PPU extends Processor {
     private int scanlineCycle;
     private int address;
     private MirroringMode mirroringMode = MirroringMode.HORIZONTAL;
-    private BufferedImage backgroundImage;
+    private BufferedImage screenImage;
     public boolean imageReady;
 
     // Values from PPUControl
@@ -42,24 +43,26 @@ public class PPU extends Processor {
     private boolean spriteZeroHit;
     private boolean spriteOverflow;
 
-    private static final int PALLETE_OFFSET = 0x3F00;
+    private static final int PALETTE_OFFSET = 0x3F00;
 
     // PPU register addresses
     private static final int PPU_CTRL = 0x2000;
     private static final int PPU_MASK = 0x2001;
     private static final int PPU_STATUS = 0x2002;
 
-    private CircularBuffer<Byte> nameTableBytes;
-    private CircularBuffer<Byte> attributeTableBytes;
-    private CircularBuffer<Byte> lowBGTileBytes;
-    private CircularBuffer<Byte> highBGTileBytes;
+    private final CircularBuffer<Byte> nameTableBytes;
+    private final CircularBuffer<Byte> attributeTableBytes;
+    private final CircularBuffer<Byte> lowBGTileBytes;
+    private final CircularBuffer<Byte> highBGTileBytes;
 
-    private static int[] patternTableAddresses = {0x0000, 0x1000};
-    private static int[] nameTableAddresses = {0x2000, 0x2400, 0x2800, 0x2C00};
-    private static int[] attributeTableAddresses = {0x23C0, 0x27C0, 0x2BC0, 0x2FC0};
+    private final Sprite[] sprites;
+
+    private static final int[] patternTableAddresses = {0x0000, 0x1000};
+    private static final int[] nameTableAddresses = {0x2000, 0x2400, 0x2800, 0x2C00};
+    private static final int[] attributeTableAddresses = {0x23C0, 0x27C0, 0x2BC0, 0x2FC0};
 
     // Across and going down (add 1, add 32)
-    private static int[] tableIncrements = {0x01, 0x20};
+    private static final int[] tableIncrements = {0x01, 0x20};
 
     private static final int NUM_TOTAL_SCANLINES = 261;
     private static final int PPU_CYCLES_PER_SCANLINE = 341;
@@ -67,7 +70,7 @@ public class PPU extends Processor {
     private static final int SCREEN_HEIGHT = 240;
     private static final int NUM_VISIBLE_SCANLINES = SCREEN_HEIGHT;
 
-    public static final int[][] systemPalleteColors = {
+    public static final int[][] systemPaletteColors = {
             {0x75, 0x75, 0x75}, // 0x00
             {0x27, 0x1B, 0x8F}, // 0x01
             {0x00, 0x00, 0xAB}, // 0x02
@@ -144,7 +147,7 @@ public class PPU extends Processor {
         scanlineCycle = 0;
         cycleCount = 0;
         evenFlag = true;
-        backgroundImage = new BufferedImage(SCREEN_WIDTH, SCREEN_HEIGHT, BufferedImage.TYPE_INT_RGB);
+        screenImage = new BufferedImage(SCREEN_WIDTH, SCREEN_HEIGHT, BufferedImage.TYPE_INT_RGB);
         imageReady = false;
 
         generateNMI = true;
@@ -171,6 +174,8 @@ public class PPU extends Processor {
         attributeTableBytes = new CircularBuffer(2);
         lowBGTileBytes = new CircularBuffer(2);
         highBGTileBytes = new CircularBuffer(2);
+
+        sprites = new Sprite[8]; // Eight sprites per line max
     }
 
     public void setMirroringMode(MirroringMode mirroringMode) {
@@ -269,13 +274,15 @@ public class PPU extends Processor {
             } else if (tileCycle == 7) {
                 fetchHighBGTileByte();
             }
-        } else if (renderingEnabled() && scanlineCycle == 257) {
+        } else if (scanlineCycle == 257) {
             this.memory.copyHorizontal();
-        } else {
             // Fetch the sprite data for the next scanline
+            if (scanlineNumber >= 0) {
+                spriteOverflow = this.memory.fetchSprites(sprites, scanlineNumber + 1);
+            }
         }
 
-        if (renderingEnabled() && scanlineCycle == 256) {
+        if (scanlineCycle == 256) {
             this.memory.incrementVertical();
         }
     }
@@ -301,27 +308,82 @@ public class PPU extends Processor {
 
         byte attributeTwoBitColor = (byte) ((attributeTableBytes.peek() >> (attributeSquareNumber * 2)) & 0x03);
 
-        // Render the eight pixels
+        // Render the eight background pixels
         for (int i = 0; i < 8; i++) {
-            byte bHigh = (byte) (highBGTileBytes.peek() >> (7 - i) & 0x01);
-            byte bLow = (byte) (lowBGTileBytes.peek() >> (7 - i) & 0x01);
+            int shiftX = 7 - i;
+            byte bHigh = (byte) ((highBGTileBytes.peek() >> shiftX) & 0x01);
+            byte bLow = (byte) ((lowBGTileBytes.peek() >> shiftX) & 0x01);
             // Now we take the attribute tile 2-bits and concatenate them with the bits from the 8x8 tile:
-            byte bgPalletePixelIndex = (byte) ((attributeTwoBitColor << 2) | bHigh << 1 | bLow);
-            int bgRGB = getColorFromPalleteIndex(bgPalletePixelIndex);
-            backgroundImage.setRGB(x + i, y, bgRGB);
+            int bgPalettePixelIndex = ((attributeTwoBitColor << 2) | bHigh << 1 | bLow) & 0x0F;
+            int bgRGB = getColorFromBackgroundPalette(bgPalettePixelIndex);
+            if (showBG) {
+                screenImage.setRGB(x + i, y, bgRGB);
+            }
         }
-//        System.out.println(x + ", " + y + " - " + attributeSquareX + ", " + attributeSquareY + ": " + nameTableBytes.peek() + ", " + lowBGTileBytes.peek() + ", " + highBGTileBytes.peek());
+
+        // Render sprites in order of lowest to highest priority (i.e. backwards)
+        for (int j = 7; j >= 0; j--) {
+            final Sprite sprite = sprites[j];
+            // Only render sprites if they're within our eight bit window
+            if (sprite == null || sprite.x > (x + 7) || (sprite.x + 7) < x ) {
+                continue;
+            }
+//            if (sprite.priority == 0) {
+//                System.out.println("Mario");
+//            }
+            int shiftY = this.memory.getFineYScroll();
+            if (sprite.flippedVertically()) {
+                shiftY = 7 - shiftY;
+            }
+            byte spriteLow = this.memory.readFromPPU(
+                    patternTableAddresses[spriteTableAddressIndex] + sprite.patternTableIndex * 0x10 + shiftY);
+            byte spriteHigh = this.memory.readFromPPU(
+                    patternTableAddresses[spriteTableAddressIndex] + sprite.patternTableIndex * 0x10 + shiftY + 0x08);
+            for (int i = 0; i < 8; i++) {
+//                if (sprite.x + i > x + 7 || sprite.x + i < x) {
+//                    continue;
+//                }
+                int shiftX = sprite.flippedHorizontally() ? i : (7 - i);
+                byte sLow = (byte) ((spriteLow >> shiftX) & 0x01);
+                byte sHigh = (byte) ((spriteHigh >> shiftX) & 0x01);
+
+                // Take the 2-bit attribute and concatenate with the sLow and sHigh like for the background
+                int spritePaletteIndex = ((sprite.attributes << 2) | sHigh << 1 | sLow) & 0x0F;
+                int spriteRGB = getColorFromSpritePalette(spritePaletteIndex);
+                if (showSprites && !(sHigh == 0 && sLow == 0)) {
+                    screenImage.setRGB(x + i, y, spriteRGB);
+                }
+
+                // Check for a sprite-zero hit
+                if (!spriteZeroHit && sprite.priority == 0) {
+                    byte bHigh = (byte) ((highBGTileBytes.peek() >> (7 - i)) & 0x01);
+                    byte bLow = (byte) ((lowBGTileBytes.peek() >> (7 - i)) & 0x01);
+                    if (sLow == 0x01 || sHigh == 0x01) {
+                        spriteZeroHit = bHigh == 0x01 || bLow == 0x01;
+                    }
+                }
+            }
+        }
     }
 
     /**
-     * Returns the RGB color value given a pallete index
+     * Returns the RGB color value given a palette index into the background palette
      */
-    private int getColorFromPalleteIndex(byte palleteColorIndex) {
-        byte systemColorIndex = this.memory.readFromPPU(
-                Utilities.addUnsignedByteToInt(PALLETE_OFFSET, palleteColorIndex));
-        int[] rgb = systemPalleteColors[Utilities.toUnsignedValue(systemColorIndex) & 0x3F];
+    private int getColorFromBackgroundPalette(int paletteColorIndex) {
+        byte systemColorIndex = this.memory.readFromPPU(PALETTE_OFFSET + paletteColorIndex);
+        int[] rgb = systemPaletteColors[Utilities.toUnsignedValue(systemColorIndex) & 0x3F];
         int rgbColor = rgb[0] << 16 & 0xFF0000 | rgb[1] << 8 & 0x00FF00 | rgb[2] & 0x0000FF;
         return rgbColor;
+    }
+
+    /**
+     * Return the RGB color value given a palette index into the sprite palette.
+     *
+     * @param paletteColorIndex
+     * @return
+     */
+    private int getColorFromSpritePalette(int paletteColorIndex) {
+        return getColorFromBackgroundPalette(paletteColorIndex + 0x10);
     }
 
     /**
@@ -382,7 +444,7 @@ public class PPU extends Processor {
 
     public BufferedImage getImage() {
         imageReady = false;
-        return backgroundImage;
+        return screenImage;
     }
 
     /**
