@@ -19,9 +19,7 @@ public class CircularBuffer<T> {
     public CircularBuffer(final int size) {
         buffer = new ArrayList<>(Collections.nCopies(size, null));
         this.size = size;
-        front = 0;
-        back = 0;
-        atCapacity = false;
+        clear();
     }
 
     /**
@@ -62,6 +60,30 @@ public class CircularBuffer<T> {
             return null;
         }
         return buffer.get(front);
+    }
+
+    /**
+     * Return whether or not the buffer is saturated
+     */
+    public boolean full() {
+        return atCapacity;
+    }
+
+    /**
+     * Return whether or not the buffer is empty
+     * @return
+     */
+    public boolean empty() {
+        return !atCapacity && front == back;
+    }
+
+    /**
+     * Clear the buffer
+     */
+    public void clear() {
+        front = 0;
+        back = 0;
+        atCapacity = false;
     }
 
     /**

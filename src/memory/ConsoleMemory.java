@@ -147,4 +147,15 @@ public class ConsoleMemory extends MemoryMap {
     public void incrementHorizontal() {
         this.ioRegisterMemory.incrementHorizontal();
     }
+
+    /**
+     * Fetch all relevant sprites for a line number and fill sprites. We return true if the sprites array is completely
+     * filled
+     *
+     * @param lineNumber
+     * @return
+     */
+    public boolean fetchSprites(final Sprite[] sprites, int lineNumber) {
+        return this.sram.fetchSprites(sprites, lineNumber);
+    }
 }
