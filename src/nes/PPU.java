@@ -14,7 +14,6 @@ public class PPU extends Processor {
     private boolean evenFlag;
     private int scanlineNumber;
     private int scanlineCycle;
-    private int address;
     private MirroringMode mirroringMode = MirroringMode.HORIZONTAL;
     private BufferedImage screenImage;
     public boolean imageReady;
@@ -328,9 +327,6 @@ public class PPU extends Processor {
             if (sprite == null || sprite.x > (x + 7) || (sprite.x + 7) < x) {
                 continue;
             }
-//            if (sprite.priority == 0) {
-//                System.out.println("Mario");
-//            }
             int shiftY = this.memory.getFineYScroll();
             if (sprite.flippedVertically()) {
                 shiftY = 7 - shiftY;
