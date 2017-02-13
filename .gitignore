@@ -7,3 +7,4 @@ bin/
 # IntelliJ related setting
 *.iml
 .idea
+META-INF

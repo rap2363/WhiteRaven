@@ -101,6 +101,20 @@ public class ConsoleMemory extends MemoryMap {
     }
 
     /**
+     * Write a byte to SPR-RAM
+     *
+     * @param address
+     * @param value
+     */
+    public void writeToSPRData(int address, byte value) {
+        this.sram.write(address, value);
+    }
+
+    public byte readFromSPRData(int address) {
+        return this.sram.read(address);
+    }
+
+    /**
      * Gets bubbled back up to the CPU
      *
      * @return
