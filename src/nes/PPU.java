@@ -51,10 +51,10 @@ public class PPU extends Processor {
     private static final int PPU_MASK = 0x2001;
     private static final int PPU_STATUS = 0x2002;
 
-    private final CircularBuffer<Byte> nameTableBytes;
-    private final CircularBuffer<Byte> attributeTableBytes;
-    private final CircularBuffer<Byte> lowBGTileBytes;
-    private final CircularBuffer<Byte> highBGTileBytes;
+    private byte nameTableByte;
+    private byte attributeTableByte;
+    private byte lowBGTileByte;
+    private byte highBGTileByte;
 
     private final Sprite[] sprites;
 
@@ -169,10 +169,10 @@ public class PPU extends Processor {
         spriteZeroHit = false;
         spriteOverflow = false;
 
-        nameTableBytes = new CircularBuffer(2);
-        attributeTableBytes = new CircularBuffer(2);
-        lowBGTileBytes = new CircularBuffer(2);
-        highBGTileBytes = new CircularBuffer(2);
+        nameTableByte = 0x0;
+        attributeTableByte = 0x0;
+        lowBGTileByte = 0x0;
+        highBGTileByte = 0x0;
 
         sprites = new Sprite[8]; // Eight sprites per line max
     }
@@ -305,13 +305,13 @@ public class PPU extends Processor {
             attributeSquareNumber = 3;
         }
 
-        byte attributeTwoBitColor = (byte) ((attributeTableBytes.peek() >> (attributeSquareNumber * 2)) & 0x03);
+        byte attributeTwoBitColor = (byte) ((attributeTableByte >> (attributeSquareNumber * 2)) & 0x03);
 
         // Render the eight background pixels
         for (int i = 0; i < 8; i++) {
             int shiftX = 7 - i;
-            byte bHigh = (byte) ((highBGTileBytes.peek() >> shiftX) & 0x01);
-            byte bLow = (byte) ((lowBGTileBytes.peek() >> shiftX) & 0x01);
+            byte bHigh = (byte) ((highBGTileByte >> shiftX) & 0x01);
+            byte bLow = (byte) ((lowBGTileByte >> shiftX) & 0x01);
             // Now we take the attribute tile 2-bits and concatenate them with the bits from the 8x8 tile:
             int bgPalettePixelIndex = ((attributeTwoBitColor << 2) | bHigh << 1 | bLow) & 0x0F;
             int bgRGB = getColorFromBackgroundPalette(bgPalettePixelIndex);
@@ -336,7 +336,7 @@ public class PPU extends Processor {
             byte spriteHigh = this.memory.readFromPPU(
                     patternTableAddresses[spriteTableAddressIndex] + sprite.patternTableIndex * 0x10 + shiftY + 0x08);
             for (int i = 0; i < 8; i++) {
-                if (sprite.x + i >= x + 7 || sprite.x + i < x) {
+                if (sprite.x + i > x + 7 || sprite.x + i < x) {
                     continue;
                 }
                 int shiftX = sprite.flippedHorizontally() ? i : (7 - i);
@@ -352,8 +352,8 @@ public class PPU extends Processor {
 
                 // Check for a sprite-zero hit
                 if (!spriteZeroHit && sprite.priority == 0) {
-                    byte bHigh = (byte) ((highBGTileBytes.peek() >> (7 - i)) & 0x01);
-                    byte bLow = (byte) ((lowBGTileBytes.peek() >> (7 - i)) & 0x01);
+                    byte bHigh = (byte) ((highBGTileByte) >> (7 - i) & 0x01);
+                    byte bLow = (byte) ((lowBGTileByte) >> (7 - i) & 0x01);
                     if (sLow == 0x01 || sHigh == 0x01) {
                         spriteZeroHit = bHigh == 0x01 || bLow == 0x01;
                     }
@@ -389,7 +389,7 @@ public class PPU extends Processor {
      */
     private void fetchNameTableByte() {
         int tileAddress = 0x2000 | (this.memory.getVramAddress() & 0x0FFF);
-        nameTableBytes.push(this.memory.readFromPPU(tileAddress));
+        nameTableByte = this.memory.readFromPPU(tileAddress);
     }
 
     /**
@@ -400,7 +400,7 @@ public class PPU extends Processor {
     private void fetchAttributeTableByte() {
         int vramAddress = this.memory.getVramAddress();
         int attributeAddress = 0x23C0 | (vramAddress & 0x0C00) | ((vramAddress >> 4) & 0x38) | ((vramAddress >> 2) & 0x07);
-        attributeTableBytes.push(this.memory.readFromPPU(attributeAddress));
+        attributeTableByte = this.memory.readFromPPU(attributeAddress);
     }
 
     /**
@@ -412,9 +412,8 @@ public class PPU extends Processor {
     private void fetchLowBGTileByte() {
         int patternTable = patternTableAddresses[bgTableIndex];
         int fineYScroll = this.memory.getFineYScroll();
-        lowBGTileBytes.push(
-                this.memory.readFromPPU(
-                        patternTable + Utilities.toUnsignedValue(nameTableBytes.peek()) * 0x10 + fineYScroll));
+        lowBGTileByte = this.memory.readFromPPU(
+                        patternTable + Utilities.toUnsignedValue(nameTableByte) * 0x10 + fineYScroll);
     }
 
     /**
@@ -425,9 +424,8 @@ public class PPU extends Processor {
     private void fetchHighBGTileByte() {
         int patternTable = patternTableAddresses[bgTableIndex];
         int fineYScroll = this.memory.getFineYScroll();
-        highBGTileBytes.push(
-                this.memory.readFromPPU(
-                        patternTable + Utilities.toUnsignedValue(nameTableBytes.peek()) * 0x10 + fineYScroll + 0x08));
+        highBGTileByte = this.memory.readFromPPU(
+                        patternTable + Utilities.toUnsignedValue(nameTableByte) * 0x10 + fineYScroll + 0x08);
     }
 
     private void postRenderScanline(int scanlineCycle) {

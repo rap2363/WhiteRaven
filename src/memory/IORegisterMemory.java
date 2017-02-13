@@ -197,14 +197,17 @@ public class IORegisterMemory extends MemoryMap {
      */
     private void writeToSPRData(byte value) {
         this.memory[SPR_DATA] = value;
-        writeToSPRAddress((byte) (readFromSPRAddress() + 0x04));
+        int address = readFromSPRAddress();
+        this.consoleMemory.writeToSPRData(address, value);
+        writeToSPRAddress((byte) (address + 0x04));
     }
+
 
     /**
      * Read the byte from SPR_DATA
      */
     private byte readFromSPRData() {
-        return this.memory[SPR_DATA];
+        return this.consoleMemory.readFromSPRData(readFromSPRAddress());
     }
 
     /**
