@@ -290,22 +290,23 @@ public class PPU extends Processor {
      * Renders eight pixels from (x, y) --> (x + 7, y).
      */
     private void renderEightPixels(int y, int x) {
-        if (y < 0 || y >= SCREEN_HEIGHT || x < 0 || x + 7 >= SCREEN_WIDTH) {
+        if (y < 0 || y >= SCREEN_HEIGHT || x < 0 || x + 8 > SCREEN_WIDTH) {
             return;
         }
 
-        int attributeSquareX = x % 0x20; // Four 8 x 8 tiles = 32 = 0x20
-        int attributeSquareY = y % 0x20;
-        int attributeSquareNumber = 0;
-        if (attributeSquareX >= 0x10 && attributeSquareY < 0x10) {
-            attributeSquareNumber = 1;
-        } else if (attributeSquareX < 0x10 && attributeSquareY >= 0x10) {
-            attributeSquareNumber = 2;
-        } else if (attributeSquareX >= 0x10 && attributeSquareY >= 0x10) {
-            attributeSquareNumber = 3;
-        }
+        byte bgPixels = renderEightBackgroundPixels(y, x);
+        renderEightSpritePixels(y, x, bgPixels);
+    }
 
-        byte attributeTwoBitColor = (byte) ((attributeTableByte >> (attributeSquareNumber * 2)) & 0x03);
+    /**
+     * Render eight background pixels from (x, y) --> (x + 7, y). We return a byte where 1's are if we have set a
+     * pixel to something non-transparent.
+     *
+     * @return
+     */
+    private byte renderEightBackgroundPixels(int y, int x) {
+        byte attributeTwoBitColor = (byte) ((attributeTableByte >> (getAttributeSquareNumber(x, y) * 2)) & 0x03);
+        byte renderedPixels = 0x0;
 
         // Render the eight background pixels
         for (int i = 0; i < 8; i++) {
@@ -315,11 +316,25 @@ public class PPU extends Processor {
             // Now we take the attribute tile 2-bits and concatenate them with the bits from the 8x8 tile:
             int bgPalettePixelIndex = ((attributeTwoBitColor << 2) | bHigh << 1 | bLow) & 0x0F;
             int bgRGB = getColorFromBackgroundPalette(bgPalettePixelIndex);
-            if (showBG) {
+            if (showBG && !((x + i) < 8 && leftBG)) {
                 screenImage.setRGB(x + i, y, bgRGB);
+                if (bHigh == 0x01 || bLow == 0x01) {
+                    renderedPixels |= 0x01 << shiftX;
+                }
             }
         }
 
+        return renderedPixels;
+    }
+
+    /**
+     * Render eight sprite pixels
+     *
+     * @param y
+     * @param x
+     * @param bgPixels
+     */
+    private void renderEightSpritePixels(int y, int x, byte bgPixels) {
         // Render sprites in order of lowest to highest priority (i.e. backwards)
         for (int j = 7; j >= 0; j--) {
             final Sprite sprite = sprites[j];
@@ -352,14 +367,32 @@ public class PPU extends Processor {
 
                 // Check for a sprite-zero hit
                 if (!spriteZeroHit && sprite.priority == 0) {
-                    byte bHigh = (byte) ((highBGTileByte) >> (7 - i) & 0x01);
-                    byte bLow = (byte) ((lowBGTileByte) >> (7 - i) & 0x01);
                     if (sLow == 0x01 || sHigh == 0x01) {
-                        spriteZeroHit = bHigh == 0x01 || bLow == 0x01;
+                        spriteZeroHit = (bgPixels >> i == 0x01);
                     }
                 }
             }
         }
+    }
+    /**
+     * Return the attribute square number (0 - 3).
+     *
+     * @param x
+     * @param y
+     * @return
+     */
+    private int getAttributeSquareNumber(int x, int y) {
+        int attributeSquareX = x % 0x20; // Four 8 x 8 tiles = 32 = 0x20
+        int attributeSquareY = y % 0x20;
+        int attributeSquareNumber = 0;
+        if (attributeSquareX >= 0x10 && attributeSquareY < 0x10) {
+            attributeSquareNumber = 1;
+        } else if (attributeSquareX < 0x10 && attributeSquareY >= 0x10) {
+            attributeSquareNumber = 2;
+        } else if (attributeSquareX >= 0x10 && attributeSquareY >= 0x10) {
+            attributeSquareNumber = 3;
+        }
+        return attributeSquareNumber;
     }
 
     /**
@@ -442,109 +475,6 @@ public class PPU extends Processor {
     }
 
     /**
-     * Return the pallete index (4-bits) of a given background pixel at x,y. This method will return a number from
-     * from 0 -> F. The x,y specified is a coordinate pair from (0,0) --> (511, 479). This method will use the
-     * correct nametable according to the current mirroring mode.
-     *
-     * @param x
-     * @param y
-     * @return
-     */
-    private byte backgroundPixelPalleteIndex(int x, int y) {
-        int nameTableAddress = getNameTableAddress(x, y);
-        x %= SCREEN_WIDTH;
-        y %= SCREEN_HEIGHT;
-        int nameTableTile = getNameTableTileNumber(x, y);
-
-        byte b = this.memory.readFromPPU(nameTableAddress + nameTableTile);
-        byte bLow = this.memory.readFromPPU(patternTableAddresses[bgTableIndex] + b + y % 8);
-        byte bHigh = this.memory.readFromPPU(patternTableAddresses[bgTableIndex] + b + y % 8 + 0x08);
-
-        bLow >>= (7 - x % 8);
-        bHigh >>= (7 - x % 8);
-
-        int attributeTableAddress = getAttributeTableAddress(x, y);
-        int attributeTileNumber = getAttributeTileNumber(x, y);
-        int attributeSquareX = x % 0x20; // Four 8 x 8 tiles = 32 = 0x20
-        int attributeSquareY = y % 0x20;
-        int attributeSquareNumber = 0;
-        if (attributeSquareX > 0x10 && attributeSquareY < 0x10) {
-            attributeSquareNumber = 1;
-        } else if (attributeSquareX < 0x10 && attributeSquareY > 0x10) {
-            attributeSquareNumber = 2;
-        } else if (attributeSquareX > 0x10 && attributeSquareY > 0x10) {
-            attributeSquareNumber = 3;
-        }
-
-        byte attributeTwoBitColor = (byte) (this.memory.readFromPPU(attributeTableAddress + attributeTileNumber)
-                >> (attributeSquareNumber * 2));
-
-        attributeTwoBitColor &= 0x0003;
-        bHigh &= 0x01;
-        bLow &= 0x01;
-
-        // Now we take the attribute tile 2-bits and concatenate them with the bits from the 8x8 tile:
-        return (byte) ((attributeTwoBitColor << 2) | bHigh << 1 | bLow);
-    }
-
-    /**
-     * Return the correct name table address
-     *
-     * @param x
-     * @param y
-     * @return
-     */
-    private int getNameTableAddress(int x, int y) {
-        int quadrant = 0; // upper left
-        if (x >= SCREEN_WIDTH && y < SCREEN_HEIGHT) {
-            quadrant = 1; // upper right
-        } else if (x < SCREEN_WIDTH && y >= SCREEN_HEIGHT) {
-            quadrant = 2; // lower left
-        } else if (x >= SCREEN_WIDTH && y >= SCREEN_HEIGHT) {
-            quadrant = 3;
-        }
-
-        return nameTableAddresses[quadrant];
-    }
-
-    /**
-     * Return the correct attribute table address
-     *
-     * @param x
-     * @param y
-     * @return
-     */
-    private int getAttributeTableAddress(int x, int y) {
-        int quadrant = 0; // upper left
-        if (x >= SCREEN_WIDTH && y < SCREEN_HEIGHT) {
-            quadrant = 1; // upper right
-        } else if (x < SCREEN_WIDTH && y >= SCREEN_HEIGHT) {
-            quadrant = 2; // lower left
-        } else if (x >= SCREEN_WIDTH && y >= SCREEN_HEIGHT) {
-            quadrant = 3;
-        }
-
-        return attributeTableAddresses[quadrant];
-    }
-
-    /**
-     * Calculate the tile number the current pixel is in.
-     *
-     * @return
-     */
-    private int getNameTableTileNumber(int x, int y) {
-        return (y / 8) * 32 + (x / 8);
-    }
-
-    /**
-     * Calculate the attribute table tile the current pixel is in.
-     * @return
-     */
-    private int getAttributeTileNumber(int x, int y) {
-        return (y / 32) * 8 + (x / 32);
-    }
-
-    /**
      * Read in and load the PPU_CTRL register's values into our local variables.
      * The PPU_CTRL bits hold information regarding:
      * 0-1: Base nametable address
@@ -615,4 +545,6 @@ public class PPU extends Processor {
 
         memory.write(PPU_STATUS, value);
     }
+
+
 }

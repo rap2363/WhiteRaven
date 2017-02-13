@@ -28,8 +28,10 @@ public class IORegisterMemory extends MemoryMap {
     public boolean dmaFlag = false;
 
     // Second set of registers (APU, controllers, DMA, etc.)
-    // TODO: implement these registers!
+    // TODO: implement all of these registers!
     private static final int SPR_DMA = 0x2014;
+    private static final int JOYPAD_1 = 0x2016;
+    private static final int JOYPAD_2 = 0x2017;
 
     public IORegisterMemory(final ConsoleMemory consoleMemory) {
         super(numPpuRegisters + numSecondSetRegisters);
@@ -72,6 +74,12 @@ public class IORegisterMemory extends MemoryMap {
                     return 0x0;
             }
         } else {
+            switch (address) {
+                case JOYPAD_1:
+                    return this.consoleMemory.readFromJoypadOne();
+                default:
+                    break;
+            }
             return memory[address - SECOND_SET_IO_REGISTERS];
         }
     }
@@ -118,6 +126,11 @@ public class IORegisterMemory extends MemoryMap {
             switch (address) {
                 case SPR_DMA:
                     dmaFlag = true;
+                    break;
+                case JOYPAD_1:
+                    this.consoleMemory.writeToJoypadOne(value);
+                    break;
+                default:
                     break;
             }
             memory[address - SECOND_SET_IO_REGISTERS] = value;
