@@ -1,6 +1,7 @@
 package memory;
 
 import nes.Cartridge;
+import nes.Joypad;
 import operations.Utilities;
 
 /**
@@ -23,17 +24,15 @@ public class ConsoleMemory extends MemoryMap {
     private SPRAM sram = new SPRAM();
     private IORegisterMemory ioRegisterMemory = new IORegisterMemory(this);
     private Cartridge cartridge;
+    private Joypad joypadOne;
 
     private static final int addressableMemorySize = 0x10000;
 
-    private ConsoleMemory(final Cartridge c) {
+    public ConsoleMemory(final Cartridge cartridge, final Joypad joypadOne) {
         super(0);
-        this.cartridge = c;
-        this.vram.setMirroringMode(c.getMirroringMode());
-    }
-
-    public static ConsoleMemory bootFromCartridge(final Cartridge cartridge) {
-        return new ConsoleMemory(cartridge);
+        this.cartridge = cartridge;
+        this.joypadOne = joypadOne;
+        this.vram.setMirroringMode(cartridge.getMirroringMode());
     }
 
     /**
@@ -171,5 +170,13 @@ public class ConsoleMemory extends MemoryMap {
      */
     public boolean fetchSprites(final Sprite[] sprites, int lineNumber) {
         return this.sram.fetchSprites(sprites, lineNumber);
+    }
+
+    public void writeToJoypadOne(byte value) {
+        this.joypadOne.write(value);
+    }
+
+    public byte readFromJoypadOne() {
+        return this.joypadOne.read();
     }
 }

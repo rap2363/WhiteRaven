@@ -57,7 +57,7 @@ public class SPRAM extends MemoryMap {
             int y = Utilities.toUnsignedValue(read(i)) + 1;
             int tileIndex = Utilities.toUnsignedValue(read(i + 1));
             byte attributes = read(i + 2);
-            int x = Utilities.toUnsignedValue(read(i + 3));
+            int x = Utilities.toUnsignedValue(read(i + 3)) - 8; // A hacky workaround for now TODO: offset in PPU.java
 
             if (lineNumber >= y && lineNumber < y + SPRITE_SIZE) {
                 buffer[numSprites++] = new Sprite.Builder()
