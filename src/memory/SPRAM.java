@@ -59,7 +59,7 @@ public class SPRAM extends MemoryMap {
             byte attributes = read(i + 2);
             int x = Utilities.toUnsignedValue(read(i + 3));
 
-            if (lineNumber >= y && lineNumber <= y + SPRITE_SIZE) {
+            if (lineNumber >= y && lineNumber < y + SPRITE_SIZE) {
                 buffer[numSprites++] = new Sprite.Builder()
                                         .setX(x)
                                         .setY(y)

@@ -43,6 +43,8 @@ public class PPU extends Processor {
     private boolean spriteZeroHit;
     private boolean spriteOverflow;
 
+    public static final int SCREEN_WIDTH = 256;
+    public static final int SCREEN_HEIGHT = 240;
     private static final int PALETTE_OFFSET = 0x3F00;
 
     // PPU register addresses
@@ -66,8 +68,6 @@ public class PPU extends Processor {
 
     private static final int NUM_TOTAL_SCANLINES = 261;
     private static final int PPU_CYCLES_PER_SCANLINE = 341;
-    private static final int SCREEN_WIDTH = 256;
-    private static final int SCREEN_HEIGHT = 240;
     private static final int NUM_VISIBLE_SCANLINES = SCREEN_HEIGHT;
 
     public static final int[][] systemPaletteColors = {
@@ -325,7 +325,7 @@ public class PPU extends Processor {
         for (int j = 7; j >= 0; j--) {
             final Sprite sprite = sprites[j];
             // Only render sprites if they're within our eight bit window
-            if (sprite == null || sprite.x > (x + 7) || (sprite.x + 7) < x ) {
+            if (sprite == null || sprite.x > (x + 7) || (sprite.x + 7) < x) {
                 continue;
             }
 //            if (sprite.priority == 0) {
@@ -340,9 +340,9 @@ public class PPU extends Processor {
             byte spriteHigh = this.memory.readFromPPU(
                     patternTableAddresses[spriteTableAddressIndex] + sprite.patternTableIndex * 0x10 + shiftY + 0x08);
             for (int i = 0; i < 8; i++) {
-//                if (sprite.x + i > x + 7 || sprite.x + i < x) {
-//                    continue;
-//                }
+                if (sprite.x + i >= x + 7 || sprite.x + i < x) {
+                    continue;
+                }
                 int shiftX = sprite.flippedHorizontally() ? i : (7 - i);
                 byte sLow = (byte) ((spriteLow >> shiftX) & 0x01);
                 byte sHigh = (byte) ((spriteHigh >> shiftX) & 0x01);

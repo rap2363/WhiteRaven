@@ -294,6 +294,7 @@ public class CPU extends Processor {
         Operation op = this.operationMap.get(opcode);
         if (op == null) {
             System.err.println("Unimplemented instruction: " + String.format("0x%02x", opcode));
+            op = this.operationMap.get((byte) 0xEA);
             return;
         }
         op.execute(this);
