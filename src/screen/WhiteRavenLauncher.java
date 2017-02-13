@@ -11,7 +11,12 @@ import java.util.TimerTask;
  */
 public class WhiteRavenLauncher {
     public static void main(String[] args) {
-        final nes.Console console = new nes.Console("/Users/rparanjpe/WhiteRaven/donkeykong.nes");
+        if (args.length < 1) {
+            System.err.println("Provide a file path to a game!");
+            System.exit(1);
+        }
+        final String pathToGame = args[0];
+        final nes.Console console = new nes.Console(pathToGame);
         final MainScreen screen = new MainScreen();
         final Timer timer = new Timer();
 
