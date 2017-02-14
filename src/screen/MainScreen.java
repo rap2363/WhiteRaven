@@ -1,8 +1,6 @@
 package screen;
 
-import java.awt.BorderLayout;
-import java.awt.Graphics;
-import java.awt.Image;
+import java.awt.*;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -36,7 +34,6 @@ final public class MainScreen
 
     private static class WhiteRavenPanel extends JPanel
     {
-        private static final long serialVersionUID = 1L;
         private Image screenImage;
 
         public void paintComponent(Graphics g)
