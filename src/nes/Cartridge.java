@@ -179,7 +179,7 @@ public class Cartridge {
 
 
     /**
-     * Write a byte into the CHR-ROM address space
+     * Write a byte into the CHR-ROM address space. This should probably not be called.
      *
      * @param address
      * @param value

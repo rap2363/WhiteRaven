@@ -8,7 +8,6 @@ import operations.Utilities;
  */
 public class SPRAM extends MemoryMap {
     private static final int SPRAM_NUM_BYTES = 0x100;
-    private static final int SPRITE_SIZE = 0x08;
     public int currentAddress = 0x0;
 
     public SPRAM() {
@@ -57,13 +56,13 @@ public class SPRAM extends MemoryMap {
             int y = Utilities.toUnsignedValue(read(i)) + 1;
             int tileIndex = Utilities.toUnsignedValue(read(i + 1));
             byte attributes = read(i + 2);
-            int x = Utilities.toUnsignedValue(read(i + 3)) - 8; // A hacky workaround for now TODO: offset in PPU.java
+            int x = Utilities.toUnsignedValue(read(i + 3));
 
-            if (lineNumber >= y && lineNumber < y + SPRITE_SIZE) {
+            if (Utilities.inRange(lineNumber, y, y + 7)) {
                 buffer[numSprites++] = new Sprite.Builder()
                                         .setX(x)
                                         .setY(y)
-                                        .setPriority(i)
+                                        .setPriority(i / 4)
                                         .setAttributes(attributes)
                                         .setPatternTableIndex(tileIndex)
                                         .build();

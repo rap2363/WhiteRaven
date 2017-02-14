@@ -114,4 +114,16 @@ public abstract class Utilities {
     public static String twoBytesToString(int x) {
         return twoBytesToString((byte) (x >> 8), (byte) x);
     }
+
+    /**
+     * Inclusive range check for integers
+     *
+     * @param value
+     * @param min
+     * @param max
+     * @return
+     */
+    public static boolean inRange(int value, int min, int max) {
+        return value >= min && value <= max;
+    }
 }
