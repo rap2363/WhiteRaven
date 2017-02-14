@@ -322,12 +322,12 @@ public class IORegisterMemory extends MemoryMap {
      * Called indirectly from the PPU to increment the horizontal position of the vramAddress
      */
     public void incrementHorizontal() {
-        if ((vramAddress & 0x001F) == 31) {
-            // Switch horizontal name table
+        if ((vramAddress & 0x001F) == 0x001F) {
+            // Switch horizontal name table every 4 tiles
             vramAddress &= ~0x001F;
             vramAddress ^= 0x0400;
         } else {
-            // Increment coarse X
+            // Increment the tile number
             vramAddress++; // Increment coarse X
         }
     }
@@ -344,8 +344,8 @@ public class IORegisterMemory extends MemoryMap {
             int y = (vramAddress & 0x03E0) >> 5;
             if (y == 29) {
                 y = 0;
-                vramAddress ^= 0x800; // Switch vertical nametable
-            } else if (y == 31) {
+                vramAddress ^= 0x800; // Switch vertical name table
+            } else if (y == 0x001F) {
                 y = 0;
             } else {
                 y++;
@@ -355,11 +355,20 @@ public class IORegisterMemory extends MemoryMap {
     }
 
     /**
-     * Calculate and return the fineY scroll from vramAddress (the upper 3 bits)
+     * Calculate and return the fineY scroll from vramAddress (the upper 3 bits), this returns a value from 0 - 7.
      *
      * @return
      */
     public int fineYScroll() {
         return (vramAddress >> 12) & 0x0007;
+    }
+
+    /**
+     * Return the fine X scroll
+     *
+     * @return
+     */
+    public int fineXScroll() {
+        return fineXScroll;
     }
 }

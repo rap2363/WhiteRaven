@@ -1,5 +1,7 @@
 package memory;
 
+import operations.Utilities;
+
 /**
  * Immutable structure to represent a sprite fetched from SPR-RAM. Use the Builder class to build sprites.
  */
@@ -19,15 +21,15 @@ public final class Sprite {
     }
 
     public boolean behindBackground() {
-        return (this.attributes >> 5 & 0x01) == 0x01;
+        return Utilities.bitAt(this.attributes, 5);
     }
 
     public boolean flippedHorizontally() {
-        return (this.attributes >> 6 & 0x01) == 0x01;
+        return Utilities.bitAt(this.attributes, 6);
     }
 
     public boolean flippedVertically() {
-        return (this.attributes >> 7 & 0x01) == 0x01;
+        return Utilities.bitAt(this.attributes, 7);
     }
 
     public static class Builder {
