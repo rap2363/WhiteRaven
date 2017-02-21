@@ -87,7 +87,7 @@ public class IORegisterMemory extends MemoryMap {
                 default:
                     break;
             }
-            return memory[address - SECOND_SET_IO_REGISTERS];
+            return memory[address - (SECOND_SET_IO_REGISTERS - numPpuRegisters)];
         }
     }
 
@@ -99,6 +99,8 @@ public class IORegisterMemory extends MemoryMap {
      */
     @Override
     public void write(int address, byte value) {
+        byte prevValue = readFromControl();
+        int originalAddress = address;
         if (address < SECOND_SET_IO_REGISTERS) {
             address %= numPpuRegisters;
             switch (address) {
@@ -140,7 +142,7 @@ public class IORegisterMemory extends MemoryMap {
                 default:
                     break;
             }
-            memory[address - SECOND_SET_IO_REGISTERS] = value;
+            memory[address - (SECOND_SET_IO_REGISTERS - numPpuRegisters)] = value;
         }
     }
 
