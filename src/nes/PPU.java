@@ -14,8 +14,7 @@ public class PPU extends Processor {
     private int scanlineCycle;
     private MirroringMode mirroringMode;
     private final CircularBuffer<int[]> imageBuffer;
-    private static final int NUM_BUFFERED_IMAGES = 1;
-    public boolean imageReady;
+    private static final int NUM_BUFFERED_IMAGES = 2;
 
     // Values from PPUControl
     private boolean generateNMI;
@@ -35,11 +34,7 @@ public class PPU extends Processor {
     private boolean leftBG;
     private boolean greyscale;
 
-    // PPUStatus flags
-    public boolean verticalBlank;
     public boolean triggerVerticalBlank;
-    private boolean spriteZeroHit;
-    private boolean spriteOverflow;
 
     public static final int SCREEN_WIDTH = 256;
     public static final int SCREEN_HEIGHT = 240;
@@ -148,7 +143,6 @@ public class PPU extends Processor {
         for (int i = 0; i < NUM_BUFFERED_IMAGES; i++) {
             imageBuffer.push(new int[SCREEN_WIDTH * SCREEN_HEIGHT]);
         }
-        imageReady = false;
 
         generateNMI = true;
         normalSpriteSize = true;
@@ -165,10 +159,7 @@ public class PPU extends Processor {
         leftBG = false;
         greyscale = false;
 
-        verticalBlank = false;
         triggerVerticalBlank = false;
-        spriteZeroHit = false;
-        spriteOverflow = false;
 
         nameTableBytes = new CircularBuffer<>(2);
         attributeTableBytes = new CircularBuffer<>(2);
@@ -394,7 +385,7 @@ public class PPU extends Processor {
                 }
 
                 // Check for a sprite-zero hit
-                if (!spriteZeroHit && sprite.priority == 0) {
+                if (sprite.priority == 0) {
                     if (sLow == 0x01 || sHigh == 0x01) {
                         if (bgPixels >> (pixelX - x) == 0x01) {
                             this.memory.setSpriteZeroHit();
@@ -477,12 +468,10 @@ public class PPU extends Processor {
         if (scanlineCycle == 1) {
             this.memory.setVblank();
             triggerVerticalBlank = generateNMI;
-            imageReady = true;
         }
     }
 
     public int[] getImage() {
-        imageReady = false;
         return imageBuffer.get();
     }
 
