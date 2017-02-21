@@ -157,9 +157,6 @@ public class IORegisterMemory extends MemoryMap {
      * Write a byte to the PPU_CTRL and update tempVramAddress
      */
     private void writeToControl(byte value) {
-        if ((value >> 4 & 0x01) == (value >> 3 & 0x01)) {
-            System.out.println(value);
-        }
         this.memory[PPU_CTRL] = value;
         // t: ...BA.. ........ = d: ......BA
         tempVramAddress = (tempVramAddress & 0xF3FF) + ((value << 10) & 0x0C00);
