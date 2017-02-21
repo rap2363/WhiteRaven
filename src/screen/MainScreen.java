@@ -1,20 +1,28 @@
 package screen;
 
-import java.awt.*;
+import memory.CircularBuffer;
+import sun.applet.Main;
 
+import java.awt.BorderLayout;
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 /**
- * Class to encompass drawing/refreshing the main screen.
+ * Class to encompass drawing/refreshing the main screen. Keeps a buffer of images that need to be rendered and
+ * renders at a fixed 60 frames per second.
  */
 final public class MainScreen
 {
     private final WhiteRavenPanel panel;
     private final JFrame frame;
+    private final CircularBuffer<int[]> imageBuffer;
 
     private static final int SCREEN_WIDTH = nes.PPU.SCREEN_WIDTH;
     private static final int SCREEN_HEIGHT = nes.PPU.SCREEN_HEIGHT;
+    private static final int IMAGE_BUFFER_SIZE = 1;
 
     public MainScreen() {
         panel = new MainScreen.WhiteRavenPanel();
@@ -25,26 +33,51 @@ final public class MainScreen
         frame.setResizable(true);
         frame.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
         frame.setVisible(true);
+
+        imageBuffer = new CircularBuffer<>(IMAGE_BUFFER_SIZE);
     }
 
-    public void redraw(final Image screenImage) {
-        this.panel.setImage(screenImage);
-        this.frame.repaint();
+    /**
+     * Push a new image onto the buffer
+     *
+     * @param image
+     */
+    public void push(final int[] image) {
+        synchronized (MainScreen.class) {
+            imageBuffer.push(image);
+        }
+    }
+
+    /**
+     * Pop an image off the buffer to paint
+     */
+    public void redraw() {
+        if (imageBuffer.peek() != null) {
+            synchronized (MainScreen.class) {
+                this.panel.processNewImage(imageBuffer.get());
+            }
+            this.panel.repaint();
+        }
     }
 
     private static class WhiteRavenPanel extends JPanel
     {
-        private Image screenImage;
+        private final BufferedImage screenImage;
+        private final int[] imgData;
+
+        public WhiteRavenPanel() {
+            super();
+            screenImage = new BufferedImage(SCREEN_WIDTH, SCREEN_HEIGHT, BufferedImage.TYPE_INT_RGB);
+            imgData = ((DataBufferInt)screenImage.getRaster().getDataBuffer()).getData();
+        }
 
         public void paintComponent(Graphics g)
         {
-            if (screenImage != null) {
-                g.drawImage(this.screenImage, 0, 0, this.getWidth(), this.getHeight(), null);
-            }
+            g.drawImage(this.screenImage, 0, 0, this.getWidth(), this.getHeight(), null);
         }
 
-        public void setImage(final Image screenImage) {
-            this.screenImage = screenImage;
+        public void processNewImage(final int[] image) {
+            System.arraycopy(image, 0, imgData, 0, image.length);
         }
     }
 }

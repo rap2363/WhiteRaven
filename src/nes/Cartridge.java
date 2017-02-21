@@ -155,8 +155,10 @@ public class Cartridge {
     public void writePRGROM(int address, byte value) {
         if (address < this.expansionRom.length) {
             expansionRom[address] = value;
+            return;
         } else if (address < (this.expansionRom.length + this.saveRam.length)) {
             saveRam[address - this.expansionRom.length] = value;
+            return;
         }
 
         address -= 0x3FE0;

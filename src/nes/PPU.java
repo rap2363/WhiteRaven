@@ -5,8 +5,6 @@ import memory.ConsoleMemory;
 import memory.Sprite;
 import operations.Utilities;
 
-import java.awt.image.BufferedImage;
-
 /**
  * Models the PPU architecture
  */
@@ -14,9 +12,9 @@ public class PPU extends Processor {
     private boolean evenFlag;
     private int scanlineNumber;
     private int scanlineCycle;
-    private MirroringMode mirroringMode = MirroringMode.HORIZONTAL;
-    private static final int NUM_BUFFERED_IMAGES = 2;
-    private final CircularBuffer<BufferedImage> screenImages;
+    private MirroringMode mirroringMode;
+    private final CircularBuffer<int[]> imageBuffer;
+    private static final int NUM_BUFFERED_IMAGES = 1;
     public boolean imageReady;
 
     // Values from PPUControl
@@ -64,7 +62,7 @@ public class PPU extends Processor {
     // Across and going down (add 1, add 32)
     private static final int[] tableIncrements = {0x01, 0x20};
 
-    private static final int NUM_TOTAL_SCANLINES = 261;
+    private static final int NUM_TOTAL_SCANLINES = 262;
     private static final int PPU_CYCLES_PER_SCANLINE = 341;
     private static final int NUM_VISIBLE_SCANLINES = SCREEN_HEIGHT;
 
@@ -141,13 +139,14 @@ public class PPU extends Processor {
 
     public PPU(final ConsoleMemory consoleMemory) {
         this.memory = consoleMemory;
+        mirroringMode = MirroringMode.HORIZONTAL;
         scanlineNumber = 241;
         scanlineCycle = 0;
         cycleCount = 0;
         evenFlag = true;
-        screenImages = new CircularBuffer<>(NUM_BUFFERED_IMAGES);
+        imageBuffer = new CircularBuffer(NUM_BUFFERED_IMAGES);
         for (int i = 0; i < NUM_BUFFERED_IMAGES; i++) {
-            screenImages.push(new BufferedImage(SCREEN_WIDTH, SCREEN_HEIGHT, BufferedImage.TYPE_INT_RGB));
+            imageBuffer.push(new int[SCREEN_WIDTH * SCREEN_HEIGHT]);
         }
         imageReady = false;
 
@@ -184,8 +183,9 @@ public class PPU extends Processor {
     /**
      * The PPU has an associated scanline number [0, 261], scanlineCycle number [0, 255], and a cycleCount at any given
      * execute(). Only scanlines 1-240 render pixels. Depending on the scanline number and scanlineCycle number, we take
-     * different actions which are handled in executePixel(). After executePixel() we increment the scanlineCycle and
-     * scanlineNumber. The PPU uses 341 cycles for each scanline, so one frame takes 341 * 262 = 89,342 cycles.
+     * different actions which are handled in preRenderScanline(), renderScanline(), or postRenderScanline().
+     * Afterwards we increment the scanlineCycle and scanlineNumber. The PPU uses 341 cycles for each scanline, so one
+     * frame takes 341 * 262 = 89,342 cycles.
      *
      * scanlineNumber:
      *
@@ -212,12 +212,15 @@ public class PPU extends Processor {
         }
 
         // Increment the scanlineNumber and scanlineCycle
-        scanlineCycle = (scanlineCycle + 1) % PPU_CYCLES_PER_SCANLINE;
+        scanlineCycle = ++scanlineCycle % PPU_CYCLES_PER_SCANLINE;
         if (scanlineCycle == 0) {
-            scanlineNumber = (scanlineNumber + 1) % NUM_TOTAL_SCANLINES;
+            scanlineNumber = ++scanlineNumber % NUM_TOTAL_SCANLINES;
+        }
+        if (scanlineNumber == 0 && scanlineCycle == 1) {
+            evenFlag = !evenFlag;
         }
 
-        writeStatus();
+        cycleCount++;
     }
 
     /**
@@ -226,16 +229,21 @@ public class PPU extends Processor {
      */
     private void preRenderScanline(int scanlineCycle) {
         if (scanlineCycle == 1) {
-            verticalBlank = false;
-            spriteZeroHit = false;
-            spriteOverflow = false;
-            BufferedImage image = screenImages.peek();
-            image = new BufferedImage(SCREEN_WIDTH, SCREEN_HEIGHT, BufferedImage.TYPE_INT_RGB);
+            this.memory.clearVblank();
+            this.memory.clearSpriteZeroHit();
+            this.memory.clearSpriteOverflow();
+            imageBuffer.push(new int[SCREEN_HEIGHT * SCREEN_WIDTH]);
         }
 
         renderScanline(-1, scanlineCycle);
-        if (renderingEnabled() && scanlineCycle >= 280 && scanlineCycle <= 304) {
+        if (!renderingDisabled() && scanlineCycle >= 280 && scanlineCycle <= 304) {
             this.memory.copyVertical();
+        }
+
+        // For even frames, we skip a cycle
+        if (scanlineCycle == PPU_CYCLES_PER_SCANLINE - 1 && !evenFlag) {
+            this.scanlineCycle = 0;
+            this.scanlineNumber = 0;
         }
     }
 
@@ -252,7 +260,7 @@ public class PPU extends Processor {
      * 337-340: Two bytes are fetched, but for unknown purposes, so we just idle.
      */
     private void renderScanline(int scanlineNumber, int scanlineCycle) {
-        if (!renderingEnabled()) {
+        if (renderingDisabled()) {
             return;
         }
 
@@ -261,7 +269,7 @@ public class PPU extends Processor {
             return;
         }
 
-        if (scanlineCycle < 257 || scanlineCycle > 321) {
+        if (scanlineCycle < 249 || scanlineCycle > 321) {
             // Fetch background tiles and render
             int tileCycle = scanlineCycle % 8;
             if (tileCycle == 0) {
@@ -272,16 +280,19 @@ public class PPU extends Processor {
             } else if (tileCycle == 3) {
                 fetchAttributeTableByte();
             }
-        } else if (scanlineCycle == 257) {
-            this.memory.copyHorizontal();
-            // Fetch the sprite data for the next scanline
-            if (scanlineNumber >= 0) {
-                spriteOverflow = this.memory.fetchSprites(sprites, scanlineNumber + 1);
-            }
         }
 
         if (scanlineCycle == 256) {
             this.memory.incrementVertical();
+        } else if (scanlineCycle == 257) {
+            // Comment out the line below for an interesting visual effect
+            this.memory.copyHorizontal();
+            // Fetch the sprite data for the next scanline
+            if (scanlineNumber >= 0) {
+                if (this.memory.fetchSprites(sprites, scanlineNumber + 1)) {
+                    this.memory.setSpriteOverflow();
+                }
+            }
         }
     }
 
@@ -292,7 +303,7 @@ public class PPU extends Processor {
      * @param y
      */
     private void renderEightPixels(int x, int y) {
-        if (y < 0 || y >= SCREEN_HEIGHT || x < 0 || x + 8 > SCREEN_WIDTH) {
+        if (y < 0 || y >= SCREEN_HEIGHT || x < 0 || x + 7 >= SCREEN_WIDTH) {
             return;
         }
 
@@ -309,20 +320,26 @@ public class PPU extends Processor {
      * @return
      */
     private byte renderEightBackgroundPixels(int x, int y) {
+        if (!showBG) {
+            return 0x0;
+        }
+
         byte attributeTwoBitColor = attributeTableBytes.peek();
         byte renderedPixels = 0x0;
 
         // Render the eight background pixels
+        final byte highBG = fetchHighBGTileByte();
+        final byte lowBG = fetchLowBGTileByte();
         for (int i = 0; i < 8; i++) {
             int shiftX = 7 - i;
-            byte bHigh = (byte) ((fetchHighBGTileByte() >> shiftX) & 0x01);
-            byte bLow = (byte) ((fetchLowBGTileByte() >> shiftX) & 0x01);
+            final byte bitHigh = (byte) ((highBG >> shiftX) & 0x01);
+            final byte bitLow = (byte) ((lowBG >> shiftX) & 0x01);
             // Now we take the attribute tile 2-bits and concatenate them with the bits from the 8x8 tile:
-            int bgPalettePixelIndex = ((attributeTwoBitColor << 2) | bHigh << 1 | bLow) & 0x0F;
+            int bgPalettePixelIndex = ((attributeTwoBitColor << 2) | bitHigh << 1 | bitLow) & 0x0F;
             int bgRGB = getColorFromBackgroundPalette(bgPalettePixelIndex);
-            if (showBG && !(x < 8 && leftBG)) {
-                screenImages.peek().setRGB(x + i, y, bgRGB);
-                if (bHigh == 0x01 || bLow == 0x01) {
+            if (!((x + i) < 8 && !leftBG)) {
+                setPixelInImage(x+i, y, bgRGB, imageBuffer.peek());
+                if (bitHigh == 0x01 || bitLow == 0x01) {
                     renderedPixels |= 0x01 << shiftX;
                 }
             }
@@ -339,6 +356,10 @@ public class PPU extends Processor {
      * @param bgPixels
      */
     private void renderEightSpritePixels(final int x, final int y, final byte bgPixels) {
+        if (!showSprites) {
+            return;
+        }
+
         // Render sprites in order of lowest to highest priority (i.e. backwards)
         for (int j = 7; j >= 0; j--) {
             final Sprite sprite = sprites[j];
@@ -368,14 +389,16 @@ public class PPU extends Processor {
                 int spritePaletteIndex = ((sprite.attributes << 2) | (sHigh << 1) | sLow) & 0x0F;
                 int spriteRGB = getColorFromSpritePalette(spritePaletteIndex);
 
-                if (showSprites && !(sHigh == 0x0 && sLow == 0x0)) {
-                    screenImages.peek().setRGB(pixelX, y, spriteRGB);
+                if (!(sHigh == 0x0 && sLow == 0x0) && !(pixelX < 8 && !leftSprites)) {
+                    setPixelInImage(pixelX, y, spriteRGB, imageBuffer.peek());
                 }
 
                 // Check for a sprite-zero hit
                 if (!spriteZeroHit && sprite.priority == 0) {
                     if (sLow == 0x01 || sHigh == 0x01) {
-                        spriteZeroHit = (bgPixels >> (pixelX - x) == 0x01);
+                        if (bgPixels >> (pixelX - x) == 0x01) {
+                            this.memory.setSpriteZeroHit();
+                        }
                     }
                 }
             }
@@ -452,19 +475,15 @@ public class PPU extends Processor {
 
     private void postRenderScanline(int scanlineCycle) {
         if (scanlineCycle == 1) {
-            verticalBlank = true;
+            this.memory.setVblank();
             triggerVerticalBlank = generateNMI;
             imageReady = true;
         }
     }
 
-    public BufferedImage getImage() {
-        // Return the top image and push it to the back of the buffer for processing later
-        final BufferedImage screenImage = screenImages.get();
-        screenImages.push(screenImage);
+    public int[] getImage() {
         imageReady = false;
-
-        return screenImage;
+        return imageBuffer.get();
     }
 
     /**
@@ -502,40 +521,28 @@ public class PPU extends Processor {
      * 7: Emphasize blue
      */
     private void readMask() {
-        final byte ctrl = memory.read(PPU_MASK);
+        final byte mask = memory.read(PPU_MASK);
 
-        greyscale = (ctrl & 0x01) == 0x01;
-        leftBG = (ctrl >> 1 & 0x01) == 0x01;
-        leftSprites = (ctrl >> 2 & 0x01) == 0x01;
-        showBG = (ctrl >> 3 & 0x01) == 0x01;
-        showSprites = (ctrl >> 4 & 0x01) == 0x01;
-        red = (ctrl >> 5 & 0x01) == 0x01;
-        green = (ctrl >> 6 & 0x01) == 0x01;
-        blue = (ctrl >> 7 & 0x01) == 0x01;
+        greyscale = (mask & 0x01) == 0x01;
+        leftBG = ((mask >> 1) & 0x01) == 0x01;
+        leftSprites = ((mask >> 2) & 0x01) == 0x01;
+        showBG = ((mask >> 3) & 0x01) == 0x01;
+        showSprites = ((mask >> 4) & 0x01) == 0x01;
+        red = ((mask >> 5) & 0x01) == 0x01;
+        green = ((mask >> 6) & 0x01) == 0x01;
+        blue = ((mask >> 7) & 0x01) == 0x01;
     }
 
     /**
-     * Helper to know whether rendering is currently enabled.
+     * Helper to know whether rendering is currently disabled.
+     *
      * @return
      */
-    private boolean renderingEnabled() {
-        return showSprites && showBG;
+    private boolean renderingDisabled() {
+        return !showSprites && !showBG;
     }
 
-    /**
-     * Write to the PPU_STATUS register.
-     * We specifically write information to bits that represent the following:
-     * 0-4: *ignored*
-     * 5: Sprite overflow
-     * 6: Sprite zero hit
-     * 7: Vertical blank has started
-     */
-    private void writeStatus() {
-        byte value = 0x0;
-        value |= spriteOverflow ? 0x20 : 0x00;
-        value |= spriteZeroHit ? 0x40 : 0x00;
-        value |= verticalBlank ? 0x80 : 0x00;
-
-        memory.write(PPU_STATUS, value);
+    private static void setPixelInImage(final int x, final int y, final int value, final int[] image) {
+        image[y * SCREEN_WIDTH + x] = value;
     }
 }

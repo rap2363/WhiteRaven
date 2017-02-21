@@ -8,7 +8,6 @@ import operations.Utilities;
  */
 public class SPRAM extends MemoryMap {
     private static final int SPRAM_NUM_BYTES = 0x100;
-    public int currentAddress = 0x0;
 
     public SPRAM() {
         super(SPRAM_NUM_BYTES);
@@ -25,11 +24,7 @@ public class SPRAM extends MemoryMap {
     }
 
     public void dmaWrite(byte[] values) {
-        this.write(currentAddress, values);
-    }
-
-    public void setCurrentAddress(int address) {
-        this.currentAddress = address;
+        this.write(0x0, values);
     }
 
     /**
