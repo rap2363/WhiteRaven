@@ -87,7 +87,7 @@ public class IORegisterMemory extends MemoryMap {
                 default:
                     break;
             }
-            return memory[address - SECOND_SET_IO_REGISTERS];
+            return memory[address - (SECOND_SET_IO_REGISTERS - numPpuRegisters)];
         }
     }
 
@@ -99,6 +99,8 @@ public class IORegisterMemory extends MemoryMap {
      */
     @Override
     public void write(int address, byte value) {
+        byte prevValue = readFromControl();
+        int originalAddress = address;
         if (address < SECOND_SET_IO_REGISTERS) {
             address %= numPpuRegisters;
             switch (address) {
@@ -140,7 +142,7 @@ public class IORegisterMemory extends MemoryMap {
                 default:
                     break;
             }
-            memory[address - SECOND_SET_IO_REGISTERS] = value;
+            memory[address - (SECOND_SET_IO_REGISTERS - numPpuRegisters)] = value;
         }
     }
 
@@ -155,6 +157,9 @@ public class IORegisterMemory extends MemoryMap {
      * Write a byte to the PPU_CTRL and update tempVramAddress
      */
     private void writeToControl(byte value) {
+        if ((value >> 4 & 0x01) == (value >> 3 & 0x01)) {
+            System.out.println(value);
+        }
         this.memory[PPU_CTRL] = value;
         // t: ...BA.. ........ = d: ......BA
         tempVramAddress = (tempVramAddress & 0xF3FF) + ((value << 10) & 0x0C00);
