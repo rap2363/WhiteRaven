@@ -25,7 +25,10 @@ public class IORegisterMemory extends MemoryMap {
 
     private ConsoleMemory consoleMemory; // reference to console memory
 
-    public boolean dmaFlag = false;
+    private boolean spriteOverflow;
+    private boolean spriteZeroHit;
+    private boolean vblank;
+    public boolean dmaFlag;
 
     // Second set of registers (APU, controllers, DMA, etc.)
     // TODO: implement all of these registers!
@@ -41,6 +44,10 @@ public class IORegisterMemory extends MemoryMap {
         firstWrite = true;
         ppuBufferData = 0x0;
         this.consoleMemory = consoleMemory;
+        spriteOverflow = false;
+        spriteZeroHit = false;
+        vblank = false;
+        dmaFlag = false;
     }
 
     /**
@@ -185,9 +192,9 @@ public class IORegisterMemory extends MemoryMap {
      * Read the byte from PPU_STATUS and reset the firstWrite and Vblank flag
      */
     private byte readFromStatus() {
+        byte status = (byte) ((vblank ? 0x80 : 0x0) + (spriteZeroHit ? 0x40 : 0x0) + (spriteOverflow ? 0x20 : 0x0));
         firstWrite = true;
-        byte status = this.memory[PPU_STATUS];
-        this.writeToStatus((byte) (status & 0x7F));
+        clearVblank();
         return status;
     }
 
@@ -370,5 +377,29 @@ public class IORegisterMemory extends MemoryMap {
      */
     public int fineXScroll() {
         return fineXScroll;
+    }
+
+    public void setSpriteOverflow() {
+        this.spriteOverflow = true;
+    }
+
+    public void setSpriteZeroHit() {
+        this.spriteZeroHit = true;
+    }
+
+    public void setVblank() {
+        this.vblank = true;
+    }
+
+    public void clearSpriteOverflow() {
+        this.spriteOverflow = false;
+    }
+
+    public void clearSpriteZeroHit() {
+        this.spriteZeroHit = false;
+    }
+
+    public void clearVblank() {
+        this.vblank = false;
     }
 }

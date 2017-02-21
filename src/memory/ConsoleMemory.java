@@ -161,6 +161,30 @@ public class ConsoleMemory extends MemoryMap {
         this.ioRegisterMemory.incrementHorizontal();
     }
 
+    public void setSpriteOverflow() {
+        this.ioRegisterMemory.setSpriteOverflow();
+    }
+
+    public void setSpriteZeroHit() {
+        this.ioRegisterMemory.setSpriteZeroHit();
+    }
+
+    public void setVblank() {
+        this.ioRegisterMemory.setVblank();
+    }
+
+    public void clearSpriteOverflow() {
+        this.ioRegisterMemory.clearSpriteOverflow();
+    }
+
+    public void clearSpriteZeroHit() {
+        this.ioRegisterMemory.clearSpriteZeroHit();
+    }
+
+    public void clearVblank() {
+        this.ioRegisterMemory.clearVblank();
+    }
+
     /**
      * Fetch all relevant sprites for a line number and fill sprites. We return true if the sprites array is completely
      * filled

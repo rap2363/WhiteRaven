@@ -10,10 +10,9 @@ public abstract class Processor {
     public long cycleCount;
 
     public final void executeCycle() {
-        if (cycleCount <= 0) {
+        if (cycleCount-- <= 0) {
             this.execute();
         }
-        this.cycleCount--;
     }
 
     public final void executeCycles(int numCycles) {

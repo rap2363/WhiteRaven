@@ -10,18 +10,20 @@ public class NESLogComparisonTest {
         byte Y;
         byte P;
         byte SP;
+        long cycleCount;
 
-        public State(int PC, byte A, byte X, byte Y, byte P, byte SP) {
+        public State(int PC, byte A, byte X, byte Y, byte P, byte SP, long cycleCount) {
             this.PC = PC;
             this.A = A;
             this.X = X;
             this.Y = Y;
             this.P = P;
             this.SP = SP;
+            this.cycleCount = cycleCount;
         }
 
         public State(final CPU cpu) {
-            this(cpu.PC.read(), cpu.A.readAsByte(), cpu.X.readAsByte(), cpu.Y.readAsByte(), cpu.P.readAsByte(), cpu.SP.readAsByte());
+            this(cpu.PC.read(), cpu.A.readAsByte(), cpu.X.readAsByte(), cpu.Y.readAsByte(), cpu.P.readAsByte(), cpu.SP.readAsByte(), cpu.cycleCount * 3 % 341);
         }
 
         public boolean equals(final State other) {
@@ -30,7 +32,8 @@ public class NESLogComparisonTest {
                     && this.X == other.X
                     && this.Y == other.Y
                     && this.P == other.P
-                    && this.SP == other.SP;
+                    && this.SP == other.SP
+                    && this.cycleCount == other.cycleCount;
         }
     }
 
@@ -58,8 +61,9 @@ public class NESLogComparisonTest {
         byte Y  = (byte) Integer.parseInt(tokens[tokens.length - 3 - offset].toLowerCase().substring(2), 16);
         byte P  = (byte) Integer.parseInt(tokens[tokens.length - 2 - offset].toLowerCase().substring(2), 16);
         byte SP = (byte) Integer.parseInt(tokens[tokens.length - 1 - offset].toLowerCase().substring(3), 16);
+        long cycleCount = Integer.parseInt(line.substring(line.length() - 3, line.length()).replaceAll("\\s+",""));
 
-        return new State(PC, A, X, Y, P, SP);
+        return new State(PC, A, X, Y, P, SP, cycleCount);
     }
 
     public static void main(String[] args) throws FileNotFoundException {
@@ -78,6 +82,7 @@ public class NESLogComparisonTest {
                     System.out.println("Line #: " + lineCount);
                     return;
                 }
+                System.out.println(console.cpu.singleLineState());
                 System.out.println(line);
                 lineCount++;
                 console.cpu.execute();

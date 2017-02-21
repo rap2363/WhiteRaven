@@ -188,17 +188,12 @@ public class CPU extends Processor {
     /**
      * Handle an interrupt. This is called internally during an execute() and takes the following steps:
      *
-     * 1. Check if we should ignore the interrupt, if we should, just exit quickly. Otherwise:
-     * 2. Push the PC and the status register onto the stack
-     * 3. Set the interrupt disable flag
-     * 4. Load the address of the interrupt handling routine (somewhere in 0xFFFA-0xFFFF)
+     * 1. Push the PC and the status register onto the stack
+     * 2. Set the interrupt disable flag
+     * 3. Load the address of the interrupt handling routine (somewhere in 0xFFFA-0xFFFF)
      *
      */
     private void handleInterrupt() {
-        if (shouldIgnoreInterrupt()) {
-            return;
-        }
-
         pushPCOntoStack();
         pushOntoStack(this.P.readAsByte());
         this.P.setInterruptDisableFlag();
@@ -283,7 +278,9 @@ public class CPU extends Processor {
      */
     @Override
     public void execute() {
-        handleInterrupt();
+        if (!shouldIgnoreInterrupt()) {
+            handleInterrupt();
+        }
         if (this.memory.dma()) {
             this.memory.executeDma();
             this.cycleCount += 512; // Stalls the CPU for 512 cycles.

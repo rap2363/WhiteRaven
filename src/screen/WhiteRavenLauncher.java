@@ -7,6 +7,8 @@ import java.util.TimerTask;
  * Starts the Emulator with a path to a game to load in.
  */
 public class WhiteRavenLauncher {
+    private static final double CPU_CYCLES_PER_SECOND = 1789773.0; // ~1.79 MHz
+
     public static void main(String[] args) {
         if (args.length < 1) {
             System.err.println("Provide a file path to a game!");
@@ -16,21 +18,22 @@ public class WhiteRavenLauncher {
         final nes.Console console = new nes.Console(pathToGame);
         final MainScreen screen = new MainScreen();
         final Timer timer = new Timer();
-
+        console.ppu.cycleCount = 20000;
         int FRAME_TIME = 17;
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                for (int i = 0; i < (1789773.0 / 60.0); i++) {
+                for (int i = 0; i < CPU_CYCLES_PER_SECOND / 60; i++) {
                     console.cpu.executeCycle();
-                    console.ppu.executeCycles(3);
                     if (console.ppu.triggerVerticalBlank) {
                         console.cpu.triggerInterrupt(nes.Interrupt.NMI);
                         console.ppu.triggerVerticalBlank = false;
+                        if (console.ppu.imageReady) {
+                            screen.push(console.ppu.getImage());
+                            screen.redraw();
+                        }
                     }
-                    if (console.ppu.imageReady) {
-                        screen.redraw(console.ppu.getImage());
-                    }
+                    console.ppu.executeCycles(3);
                 }
             }
         }, 0, FRAME_TIME);
