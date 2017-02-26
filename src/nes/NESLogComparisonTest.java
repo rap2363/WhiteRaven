@@ -1,6 +1,10 @@
 package nes;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 
 public class NESLogComparisonTest {
     private static class State {
@@ -32,8 +36,8 @@ public class NESLogComparisonTest {
                     && this.X == other.X
                     && this.Y == other.Y
                     && this.P == other.P
-                    && this.SP == other.SP
-                    && this.cycleCount == other.cycleCount;
+                    && this.SP == other.SP;
+//                    && this.cycleCount == other.cycleCount;
         }
     }
 

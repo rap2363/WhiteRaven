@@ -18,7 +18,6 @@ public class WhiteRavenLauncher {
         final nes.Console console = new nes.Console(pathToGame);
         final MainScreen screen = new MainScreen();
         final Timer timer = new Timer();
-        console.ppu.cycleCount = 20000;
         int FRAME_TIME = 17;
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -28,10 +27,11 @@ public class WhiteRavenLauncher {
                     console.cpu.executeCycle();
                     if (console.ppu.triggerVerticalBlank) {
                         console.cpu.triggerInterrupt(nes.Interrupt.NMI);
-                        screen.push(console.ppu.getImage());
                         console.ppu.triggerVerticalBlank = false;
+                        int[] image = console.ppu.getImage();
+                        screen.push(image);
+                        screen.redraw();
                     }
-                    screen.redraw();
                 }
             }
         }, 0, FRAME_TIME);

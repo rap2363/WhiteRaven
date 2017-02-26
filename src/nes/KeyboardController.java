@@ -64,10 +64,8 @@ public class KeyboardController implements Joypad {
      *
      * @return
      */
-    private byte getButton() {
-        synchronized (KeyboardController.class) {
-            return (byte) (buttonsPressed[currentButton] ? 0x01 : 0x00);
-        }
+    private synchronized byte getButton() {
+        return (byte) (buttonsPressed[currentButton] ? 0x41 : 0x40);
     }
 
     @Override

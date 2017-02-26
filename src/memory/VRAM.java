@@ -107,17 +107,19 @@ class PalleteMemory extends MemoryMap {
 
     @Override
     public byte read(int address) {
+        address %= size();
         if (address % 4 == 0) {
             address = 0;
         }
-        return this.memory[address % size()];
+        return this.memory[address];
     }
 
     @Override
     public void write(int address, byte value) {
-        if (address % 4 == 0) {
+        address %= size();
+        if (address % 4 == 0 && address >= 0x10) {
             address = 0;
         }
-        this.memory[address % size()] = value;
+        this.memory[address] = value;
     }
 }
