@@ -51,15 +51,17 @@ public class IORegisterMemory extends MemoryMap {
     }
 
     /**
-     * Read a byte from memory (implemented with memory mirrors)
+     * Read a byte from memory (implemented with memory mirrors). The address provided is between 0x0 and 0x2020
      *
      * @param address
      * @return
      */
     @Override
     public byte read(int address) {
+        assert(address >= 0x0 && address < 0x2020);
         if (address < SECOND_SET_IO_REGISTERS) {
             address %= numPpuRegisters;
+            // address: [0x0 -> 0x08]
             switch (address) {
                 case PPU_CTRL:
                     return readFromControl();
@@ -82,25 +84,26 @@ public class IORegisterMemory extends MemoryMap {
             }
         } else {
             switch (address) {
+                // address: [0x2000 -> 0x201F]
                 case JOYPAD_1:
                     return this.consoleMemory.readFromJoypadOne();
                 default:
                     break;
             }
-            return memory[address - (SECOND_SET_IO_REGISTERS - numPpuRegisters)];
+            // address - (SECOND_SET_IO_REGISTERS - numPpuRegisters): [0x08 -> 0x27]
+            return memory[(address - SECOND_SET_IO_REGISTERS) + numPpuRegisters];
         }
     }
 
     /**
-     * Write a byte into memory (this map references 0x2000 --> 0x4020)
+     * Write a byte into memory (this map references 0x2000 --> 0x4020) and address is between 0x0 and 0x2020
      *
      * @param address
      * @param value
      */
     @Override
     public void write(int address, byte value) {
-        byte prevValue = readFromControl();
-        int originalAddress = address;
+        assert(address >= 0x0 && address < 0x2020);
         if (address < SECOND_SET_IO_REGISTERS) {
             address %= numPpuRegisters;
             switch (address) {
@@ -142,7 +145,7 @@ public class IORegisterMemory extends MemoryMap {
                 default:
                     break;
             }
-            memory[address - (SECOND_SET_IO_REGISTERS - numPpuRegisters)] = value;
+            memory[(address - SECOND_SET_IO_REGISTERS) + numPpuRegisters] = value;
         }
     }
 

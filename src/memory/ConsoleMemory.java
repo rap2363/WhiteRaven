@@ -36,7 +36,7 @@ public class ConsoleMemory extends MemoryMap {
     }
 
     /**
-     * Read a byte from the CPU Memory Map
+     * Read a byte from the CPU Memory Map. The provided address will be modded with 0x10000.
      *
      * @param address
      * @return
@@ -44,11 +44,15 @@ public class ConsoleMemory extends MemoryMap {
     @Override
     public byte read(int address) {
         address = address % addressableMemorySize;
+        // address: [0x0 -> 0xFFFF]
         if (address < cpuram.size()) {
+            // address: [0x0 -> 0x1FFF]
             return this.cpuram.read(address);
         } else if (address < 0x4020) {
+            // address: [0x2000 -> 0x401F]
             return ioRegisterMemory.read(address - 0x2000);
         }
+        // address: [0x4020 -> 0xFFFF]
         return this.cartridge.readPRGROM(address - 0x4020);
     }
 
@@ -143,6 +147,10 @@ public class ConsoleMemory extends MemoryMap {
 
     public int getFineYScroll() {
         return this.ioRegisterMemory.fineYScroll();
+    }
+
+    public int getFineXScroll() {
+        return this.ioRegisterMemory.fineXScroll();
     }
 
     public void copyHorizontal() {

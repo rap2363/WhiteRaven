@@ -20,6 +20,5 @@ public class Console {
         consoleMemory = new ConsoleMemory(cartridge, joypad);
         cpu = new CPU(consoleMemory);
         ppu = new PPU(consoleMemory);
-        ppu.setMirroringMode(cartridge.getMirroringMode());
     }
 }

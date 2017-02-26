@@ -12,7 +12,6 @@ public class PPU extends Processor {
     private boolean evenFlag;
     private int scanlineNumber;
     private int scanlineCycle;
-    private MirroringMode mirroringMode;
     private final CircularBuffer<int[]> imageBuffer;
     private static final int NUM_BUFFERED_IMAGES = 2;
 
@@ -43,7 +42,6 @@ public class PPU extends Processor {
     // PPU register addresses
     private static final int PPU_CTRL = 0x2000;
     private static final int PPU_MASK = 0x2001;
-    private static final int PPU_STATUS = 0x2002;
 
     private final CircularBuffer<Byte> nameTableBytes;
     private final CircularBuffer<Byte> attributeTableBytes;
@@ -134,7 +132,6 @@ public class PPU extends Processor {
 
     public PPU(final ConsoleMemory consoleMemory) {
         this.memory = consoleMemory;
-        mirroringMode = MirroringMode.HORIZONTAL;
         scanlineNumber = 241;
         scanlineCycle = 0;
         cycleCount = 0;
@@ -165,10 +162,6 @@ public class PPU extends Processor {
         attributeTableBytes = new CircularBuffer<>(2);
 
         sprites = new Sprite[8]; // Eight sprites per line max
-    }
-
-    public void setMirroringMode(MirroringMode mirroringMode) {
-        this.mirroringMode = mirroringMode;
     }
 
     /**
@@ -322,7 +315,7 @@ public class PPU extends Processor {
         final byte highBG = fetchHighBGTileByte();
         final byte lowBG = fetchLowBGTileByte();
         for (int i = 0; i < 8; i++) {
-            int shiftX = 7 - i;
+            int shiftX = (7 - i);
             final byte bitHigh = (byte) ((highBG >> shiftX) & 0x01);
             final byte bitLow = (byte) ((lowBG >> shiftX) & 0x01);
             // Now we take the attribute tile 2-bits and concatenate them with the bits from the 8x8 tile:
@@ -385,12 +378,8 @@ public class PPU extends Processor {
                 }
 
                 // Check for a sprite-zero hit
-                if (sprite.priority == 0) {
-                    if (sLow == 0x01 || sHigh == 0x01) {
-                        if (bgPixels >> (pixelX - x) == 0x01) {
-                            this.memory.setSpriteZeroHit();
-                        }
-                    }
+                if (sprite.priority == 0 && (sLow == 0x01 || sHigh == 0x01) && (bgPixels >> (pixelX - x) == 0x01)) {
+                    this.memory.setSpriteZeroHit();
                 }
             }
         }

@@ -33,7 +33,7 @@ public class Cartridge {
 
         // Temporary while we don't have bank switching or memory management controllers
         lowerBankIndex = 0;
-        upperBankIndex = 0;
+        upperBankIndex = prgRomBanks.length - 1;
         chrRomBankIndex = 0;
         this.expansionRom = new byte[0x6000 - 0x4020];
         this.saveRam = new byte[0x2000];
