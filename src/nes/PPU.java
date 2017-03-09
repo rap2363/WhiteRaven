@@ -249,7 +249,7 @@ public class PPU extends Processor {
         }
 
         if (scanlineCycle == 0 || scanlineCycle >= 337) {
-            renderEightPixels(scanlineCycle, scanlineNumber);
+            renderPixel(scanlineCycle, scanlineNumber);
             return;
         }
 
@@ -257,13 +257,13 @@ public class PPU extends Processor {
             // Fetch background tiles and render
             int tileCycle = scanlineCycle % 8;
             if (tileCycle == 0) {
-                renderEightPixels(scanlineCycle, scanlineNumber);
                 this.memory.incrementHorizontal();
             } else if (tileCycle == 1) {
                 fetchNameTableByte();
             } else if (tileCycle == 3) {
                 fetchAttributeTableByte();
             }
+            renderPixel(scanlineCycle, scanlineNumber);
         }
 
         if (scanlineCycle == 256) {
@@ -281,65 +281,61 @@ public class PPU extends Processor {
     }
 
     /**
-     * Renders eight pixels from (x, y) --> (x + 7, y).
+     * Renders a pixel at (x, y)
      *
      * @param x
      * @param y
      */
-    private void renderEightPixels(int x, int y) {
-        if (y < 0 || y >= SCREEN_HEIGHT || x < 0 || x + 7 >= SCREEN_WIDTH) {
+    private void renderPixel(int x, int y) {
+        if (y < 0 || y >= SCREEN_HEIGHT || x < 0 || x >= SCREEN_WIDTH) {
             return;
         }
 
-        byte bgPixels = renderEightBackgroundPixels(x, y);
-        renderEightSpritePixels(x, y, bgPixels);
+        boolean backgroundRendered = renderBackgroundPixel(x, y);
+        renderSpritePixel(x, y, backgroundRendered);
     }
 
     /**
-     * Render eight background pixels from (x, y) --> (x + 7, y). We return a byte where 1's are if we have set a
-     * pixel to something non-transparent.
+     * Render a background pixel at (x, y). We return "true" if we've set the background to something non-transparent.
      *
      * @param x
      * @param y
      * @return
      */
-    private byte renderEightBackgroundPixels(int x, int y) {
+    private boolean renderBackgroundPixel(int x, int y) {
         if (!showBG) {
-            return 0x0;
+            return false;
         }
 
         byte attributeTwoBitColor = attributeTableBytes.peek();
-        byte renderedPixels = 0x0;
+        boolean backgroundRendered = false;
 
         // Render the eight background pixels
         final byte highBG = fetchHighBGTileByte();
         final byte lowBG = fetchLowBGTileByte();
-        for (int i = 0; i < 8; i++) {
-            int shiftX = (7 - i);
-            final byte bitHigh = (byte) ((highBG >> shiftX) & 0x01);
-            final byte bitLow = (byte) ((lowBG >> shiftX) & 0x01);
-            // Now we take the attribute tile 2-bits and concatenate them with the bits from the 8x8 tile:
-            int bgPalettePixelIndex = ((attributeTwoBitColor << 2) | bitHigh << 1 | bitLow) & 0x0F;
-            int bgRGB = getColorFromBackgroundPalette(bgPalettePixelIndex);
-            if (!((x + i) < 8 && !leftBG)) {
-                setPixelInImage(x+i, y, bgRGB, imageBuffer.peek());
-                if (bitHigh == 0x01 || bitLow == 0x01) {
-                    renderedPixels |= 0x01 << shiftX;
-                }
-            }
+        final int fineX = this.memory.getFineXScroll();
+        int shiftX = 7 - fineX;
+        final byte bitHigh = (byte) ((highBG >> shiftX) & 0x01);
+        final byte bitLow = (byte) ((lowBG >> shiftX) & 0x01);
+        // Now we take the attribute tile 2-bits and concatenate them with the bits from the 8x8 tile:
+        int bgPalettePixelIndex = ((attributeTwoBitColor << 2) | bitHigh << 1 | bitLow) & 0x0F;
+        int bgRGB = getColorFromBackgroundPalette(bgPalettePixelIndex);
+        if (!(x < 8 && !leftBG)) {
+            setPixelInImage(x, y, bgRGB, imageBuffer.peek());
+            backgroundRendered = (bitHigh == 0x01 || bitLow == 0x01);
         }
 
-        return renderedPixels;
+        return backgroundRendered;
     }
 
     /**
-     * Render eight sprite pixels from (x, y) --> (x + 7, y)
+     * Render a sprite pixel at (x, y)
      *
      * @param x
      * @param y
-     * @param bgPixels
+     * @param backgroundRendered
      */
-    private void renderEightSpritePixels(final int x, final int y, final byte bgPixels) {
+    private void renderSpritePixel(final int x, final int y, final boolean backgroundRendered) {
         if (!showSprites) {
             return;
         }
@@ -348,9 +344,8 @@ public class PPU extends Processor {
         for (int j = 7; j >= 0; j--) {
             final Sprite sprite = sprites[j];
 
-            // Only render sprites if they're within our eight bit window
-            if (sprite == null
-                    || !((Utilities.inRange(sprite.x, x, x + 7) || Utilities.inRange(sprite.x + 7, x, x + 7)))) {
+            // Only render sprites if any of the sprite pixels overlap with our x
+            if (sprite == null || !((Utilities.inRange(x, sprite.x, sprite.x + 7)))) {
                 continue;
             }
 
@@ -358,29 +353,28 @@ public class PPU extends Processor {
             if (sprite.flippedVertically()) {
                 shiftY = 7 - shiftY;
             }
+
             byte spriteLow = this.memory.readFromPPU(
                     patternTableAddresses[spriteTableAddressIndex] + sprite.patternTableIndex * 0x10 + shiftY);
             byte spriteHigh = this.memory.readFromPPU(
                     patternTableAddresses[spriteTableAddressIndex] + sprite.patternTableIndex * 0x10 + shiftY + 0x08);
 
-            for (int pixelX = Math.max(x, sprite.x); pixelX <= Math.min(x + 7, sprite.x + 7); pixelX++) {
-                int deltaX = sprite.x + 7 - pixelX; // A value between 0 and 7
-                int shiftX = sprite.flippedHorizontally() ? (7 - deltaX) : deltaX;
-                byte sLow = (byte) ((spriteLow >> shiftX) & 0x01);
-                byte sHigh = (byte) ((spriteHigh >> shiftX) & 0x01);
+            int deltaX = sprite.x + 7 - x; // A value between 0 and 7
+            int shiftX = sprite.flippedHorizontally() ? (7 - deltaX) : deltaX;
+            byte sLow = (byte) ((spriteLow >> shiftX) & 0x01);
+            byte sHigh = (byte) ((spriteHigh >> shiftX) & 0x01);
 
-                // Take the 2-bit attribute and concatenate with the sLow and sHigh like for the background
-                int spritePaletteIndex = ((sprite.attributes << 2) | (sHigh << 1) | sLow) & 0x0F;
-                int spriteRGB = getColorFromSpritePalette(spritePaletteIndex);
+            // Take the 2-bit attribute and concatenate with the sLow and sHigh like for the background
+            int spritePaletteIndex = ((sprite.attributes << 2) | (sHigh << 1) | sLow) & 0x0F;
+            int spriteRGB = getColorFromSpritePalette(spritePaletteIndex);
 
-                if (!(sHigh == 0x0 && sLow == 0x0) && !(pixelX < 8 && !leftSprites)) {
-                    setPixelInImage(pixelX, y, spriteRGB, imageBuffer.peek());
-                }
+            if (!(sHigh == 0x0 && sLow == 0x0) && !(x < 8 && !leftSprites)) {
+                setPixelInImage(x, y, spriteRGB, imageBuffer.peek());
+            }
 
-                // Check for a sprite-zero hit
-                if (sprite.priority == 0 && (sLow == 0x01 || sHigh == 0x01) && (bgPixels >> (pixelX - x) == 0x01)) {
-                    this.memory.setSpriteZeroHit();
-                }
+            // Check for a sprite-zero hit
+            if (sprite.priority == 0 && (sLow == 0x01 || sHigh == 0x01) && backgroundRendered) {
+                this.memory.setSpriteZeroHit();
             }
         }
     }

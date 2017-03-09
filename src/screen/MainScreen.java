@@ -42,22 +42,18 @@ final public class MainScreen
      *
      * @param image
      */
-    public void push(final int[] image) {
-        synchronized (MainScreen.class) {
-            imageBuffer.push(image);
-        }
+    public synchronized void push(final int[] image) {
+        imageBuffer.push(image);
     }
 
     /**
      * Pop an image off the buffer to paint
      */
-    public void redraw() {
+    public synchronized void redraw() {
         if (imageBuffer.peek() != null) {
-            synchronized (MainScreen.class) {
-                this.panel.processNewImage(imageBuffer.get());
-            }
-            this.panel.repaint();
+            this.panel.processNewImage(imageBuffer.get());
         }
+        this.panel.repaint();
     }
 
     private static class WhiteRavenPanel extends JPanel
