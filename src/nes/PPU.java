@@ -2,6 +2,7 @@ package nes;
 
 import memory.CircularBuffer;
 import memory.ConsoleMemory;
+import memory.ShiftRegister;
 import memory.Sprite;
 import operations.Utilities;
 
@@ -43,8 +44,11 @@ public class PPU extends Processor {
     private static final int PPU_CTRL = 0x2000;
     private static final int PPU_MASK = 0x2001;
 
-    private final CircularBuffer<Byte> nameTableBytes;
-    private final CircularBuffer<Byte> attributeTableBytes;
+    private final ShiftRegister bgTiles;
+    private byte nameTableByte;
+    private byte attributeTableByte;
+    private byte lowBGByte;
+    private byte highBGByte;
 
     private final Sprite[] sprites;
 
@@ -158,8 +162,11 @@ public class PPU extends Processor {
 
         triggerVerticalBlank = false;
 
-        nameTableBytes = new CircularBuffer<>(2);
-        attributeTableBytes = new CircularBuffer<>(2);
+        bgTiles = new ShiftRegister();
+        nameTableByte = 0x0;
+        attributeTableByte = 0x0;
+        lowBGByte = 0x0;
+        highBGByte = 0x0;
 
         sprites = new Sprite[8]; // Eight sprites per line max
     }
@@ -219,8 +226,8 @@ public class PPU extends Processor {
             imageBuffer.push(new int[SCREEN_HEIGHT * SCREEN_WIDTH]);
         }
 
-        renderScanline(-1, scanlineCycle);
         if (!renderingDisabled() && scanlineCycle >= 280 && scanlineCycle <= 304) {
+            renderScanline(-1, scanlineCycle);
             this.memory.copyVertical();
         }
 
@@ -248,22 +255,32 @@ public class PPU extends Processor {
             return;
         }
 
-        if (scanlineCycle == 0 || scanlineCycle >= 337) {
-            renderPixel(scanlineCycle, scanlineNumber);
-            return;
-        }
-
-        if (scanlineCycle < 249 || scanlineCycle > 321) {
+        if (Utilities.inRange(scanlineCycle, 1, 255) || Utilities.inRange(scanlineCycle, 321, 336)) {
             // Fetch background tiles and render
             int tileCycle = scanlineCycle % 8;
             if (tileCycle == 0) {
                 this.memory.incrementHorizontal();
             } else if (tileCycle == 1) {
-                fetchNameTableByte();
+                this.nameTableByte = fetchNameTableByte();
             } else if (tileCycle == 3) {
-                fetchAttributeTableByte();
+                this.attributeTableByte = fetchAttributeTableByte();
+            } else if (tileCycle == 5) {
+                this.lowBGByte = fetchLowBGTileByte();
+            } else if (tileCycle == 7) {
+                this.highBGByte = fetchHighBGTileByte();
             }
-            renderPixel(scanlineCycle, scanlineNumber);
+
+            // Load the shift registers
+            if (scanlineCycle > 8 && tileCycle == 1) {
+                this.bgTiles.loadHighBG(highBGByte);
+                this.bgTiles.loadLowBG(lowBGByte);
+                this.bgTiles.loadAttribute(attributeTableByte);
+            }
+
+            if (Utilities.inRange(scanlineNumber, 0, SCREEN_HEIGHT - 1)
+                    && Utilities.inRange(scanlineCycle, 0, SCREEN_WIDTH - 1)) {
+                renderPixel(scanlineCycle, scanlineNumber);
+            }
         }
 
         if (scanlineCycle == 256) {
@@ -287,10 +304,6 @@ public class PPU extends Processor {
      * @param y
      */
     private void renderPixel(int x, int y) {
-        if (y < 0 || y >= SCREEN_HEIGHT || x < 0 || x >= SCREEN_WIDTH) {
-            return;
-        }
-
         boolean backgroundRendered = renderBackgroundPixel(x, y);
         renderSpritePixel(x, y, backgroundRendered);
     }
@@ -307,22 +320,12 @@ public class PPU extends Processor {
             return false;
         }
 
-        byte attributeTwoBitColor = attributeTableBytes.peek();
         boolean backgroundRendered = false;
-
-        // Render the eight background pixels
-        final byte highBG = fetchHighBGTileByte();
-        final byte lowBG = fetchLowBGTileByte();
-        final int fineX = this.memory.getFineXScroll();
-        int shiftX = 7 - fineX;
-        final byte bitHigh = (byte) ((highBG >> shiftX) & 0x01);
-        final byte bitLow = (byte) ((lowBG >> shiftX) & 0x01);
-        // Now we take the attribute tile 2-bits and concatenate them with the bits from the 8x8 tile:
-        int bgPalettePixelIndex = ((attributeTwoBitColor << 2) | bitHigh << 1 | bitLow) & 0x0F;
+        int bgPalettePixelIndex = this.bgTiles.getPixelIndex();
         int bgRGB = getColorFromBackgroundPalette(bgPalettePixelIndex);
         if (!(x < 8 && !leftBG)) {
             setPixelInImage(x, y, bgRGB, imageBuffer.peek());
-            backgroundRendered = (bitHigh == 0x01 || bitLow == 0x01);
+            backgroundRendered = !((bgPalettePixelIndex & 0x03) == 0x0);
         }
 
         return backgroundRendered;
@@ -404,9 +407,9 @@ public class PPU extends Processor {
      *
      * @return
      */
-    private void fetchNameTableByte() {
+    private byte fetchNameTableByte() {
         int tileAddress = 0x2000 | (this.memory.getVramAddress() & 0x0FFF);
-        nameTableBytes.push(this.memory.readFromPPU(tileAddress));
+        return this.memory.readFromPPU(tileAddress);
     }
 
     /**
@@ -414,12 +417,12 @@ public class PPU extends Processor {
      *
      * @return
      */
-    private void fetchAttributeTableByte() {
+    private byte fetchAttributeTableByte() {
         int vramAddress = this.memory.getVramAddress();
         int attributeAddress = 0x23C0 | (vramAddress & 0x0C00) | ((vramAddress >> 4) & 0x38) | ((vramAddress >> 2) & 0x07);
         int tileSquare = ((vramAddress >> 4) & 0x04) + (vramAddress & 0x02); // Returns 0, 2, 4, or 6
 
-        attributeTableBytes.push((byte) (this.memory.readFromPPU(attributeAddress) >> tileSquare));
+        return (byte) (this.memory.readFromPPU(attributeAddress) >> tileSquare);
     }
 
     /**
@@ -432,7 +435,7 @@ public class PPU extends Processor {
         int patternTable = patternTableAddresses[bgTableIndex];
         int fineYScroll = this.memory.getFineYScroll();
         return this.memory.readFromPPU(
-                        patternTable + Utilities.toUnsignedValue(nameTableBytes.peek()) * 0x10 + fineYScroll);
+                        patternTable + Utilities.toUnsignedValue(this.nameTableByte) * 0x10 + fineYScroll);
     }
 
     /**
@@ -444,7 +447,7 @@ public class PPU extends Processor {
         int patternTable = patternTableAddresses[bgTableIndex];
         int fineYScroll = this.memory.getFineYScroll();
         return this.memory.readFromPPU(
-                        patternTable + Utilities.toUnsignedValue(nameTableBytes.peek()) * 0x10 + fineYScroll + 0x08);
+                        patternTable + Utilities.toUnsignedValue(this.nameTableByte) * 0x10 + fineYScroll + 0x08);
     }
 
     private void postRenderScanline(int scanlineCycle) {
