@@ -4,52 +4,62 @@ package memory;
  * This class stores two eight-pixel tile rows to render.
  */
 public class ShiftRegister {
-    private static final int TILE_LENGTH = 0x08;
-    private static final int NUM_TILES = 2;
-
-    private final CircularBuffer<Integer> lowBGTiles;
-    private final CircularBuffer<Integer> highBGTiles;
-    private final CircularBuffer<Integer> attributeColorTiles;
+    private int lowBGTiles;
+    private int highBGTiles;
+    private byte loadedAttribute;
+    private byte currentAttribute;
 
     public ShiftRegister() {
-        lowBGTiles = new CircularBuffer<>(TILE_LENGTH * NUM_TILES);
-        highBGTiles = new CircularBuffer<>(TILE_LENGTH * NUM_TILES);
-        attributeColorTiles = new CircularBuffer<>(TILE_LENGTH * NUM_TILES);
+        lowBGTiles = 0x0;
+        highBGTiles = 0x0;
+        loadedAttribute = 0x0;
+        currentAttribute = 0x0;
     }
 
     /**
-     * Get a color for a pixel in the shift register.
+     * Get a palette color index for a pixel in the shift register and shift the registers.
      *
      * @return
      */
-    public int getPixelIndex() {
-        return ((attributeColorTiles.get() << 2) | highBGTiles.get() << 1 | lowBGTiles.get()) & 0x0F;
+    public int getPixelIndex(final int fineX) {
+        final byte bgColorLow = (byte) ((((this.lowBGTiles << fineX) & 0x8000) >> 15) & 0x0001);
+        final byte bgColorHigh = (byte) ((((this.highBGTiles << fineX) & 0x8000) >> 15) & 0x0001);
+        this.shift();
+
+        return ((currentAttribute & 0x03) << 2) | (bgColorHigh << 1) | (bgColorLow);
     }
 
     /**
-     * Load a byte for the lowBG tile.
+     * Shift the background tiles to the left by one. Called by the PPU after a pixel is rendered.
+     */
+    private void shift() {
+        this.highBGTiles <<= 1;
+        this.lowBGTiles <<= 1;
+    }
+
+    /**
+     * Load a byte into the lowBG tile.
      */
     public void loadLowBG(final byte lowBG) {
-        for (int i = 0; i < 0x08; i++) {
-            this.lowBGTiles.push((lowBG >> (7 - i)) & 0x01);
-        }
+        this.lowBGTiles &= 0xFF00;
+        this.lowBGTiles |= (0x00FF & lowBG);
     }
 
     /**
-     * Load a byte for the highBG tile.
+     * Load a byte into the highBG tile.
      */
     public void loadHighBG(final byte highBG) {
-        for (int i = 0; i < 0x08; i++) {
-            this.highBGTiles.push((highBG >> (7 - i)) & 0x01);
-        }
+        this.highBGTiles &= 0xFF00;
+        this.highBGTiles |= (0x00FF & highBG);
     }
 
     /**
-     * Load the attribute color tile. We load a bunch of copies for simplicity.
+     * Load the attribute tile into the unused register (it is shifted in after 8 cycles).
+     *
+     * @param attribute
      */
-    public void loadAttribute(final byte attributeByte) {
-        for (int i = 0; i < 0x08; i++) {
-            this.attributeColorTiles.push((int) attributeByte);
-        }
+    public void loadAttributeTiles(final byte attribute) {
+        currentAttribute = loadedAttribute;
+        loadedAttribute = attribute;
     }
 }
