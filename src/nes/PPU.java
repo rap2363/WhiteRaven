@@ -274,7 +274,7 @@ public class PPU extends Processor {
             if (scanlineCycle > 8 && tileCycle == 1) {
                 this.bgTiles.loadHighBG(highBGByte);
                 this.bgTiles.loadLowBG(lowBGByte);
-                this.bgTiles.loadAttribute(attributeTableByte);
+                this.bgTiles.loadAttributeTiles(attributeTableByte);
             }
 
             if (Utilities.inRange(scanlineNumber, 0, SCREEN_HEIGHT - 1)
@@ -298,7 +298,7 @@ public class PPU extends Processor {
     }
 
     /**
-     * Renders a pixel at (x, y)
+     * Renders a pixel at (x, y).
      *
      * @param x
      * @param y
@@ -321,7 +321,7 @@ public class PPU extends Processor {
         }
 
         boolean backgroundRendered = false;
-        int bgPalettePixelIndex = this.bgTiles.getPixelIndex();
+        int bgPalettePixelIndex = this.bgTiles.getPixelIndex(this.memory.getFineXScroll());
         int bgRGB = getColorFromBackgroundPalette(bgPalettePixelIndex);
         if (!(x < 8 && !leftBG)) {
             setPixelInImage(x, y, bgRGB, imageBuffer.peek());
