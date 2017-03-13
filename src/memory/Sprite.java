@@ -12,7 +12,7 @@ public final class Sprite {
     final public int x; // x-coordinate of left part of the sprite on the screen.
     final public byte attributes;
 
-    private Sprite( int priority, int patternTableIndex, int y, int x, byte attributes) {
+    private Sprite(int priority, int patternTableIndex, int y, int x, byte attributes) {
         this.priority = priority;
         this.patternTableIndex = patternTableIndex;
         this.y = y;
@@ -67,6 +67,5 @@ public final class Sprite {
         public Sprite build() {
             return new Sprite(priority, patternTableIndex, y, x, attributes);
         }
-
     }
 }
