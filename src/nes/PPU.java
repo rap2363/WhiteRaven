@@ -254,10 +254,10 @@ public class PPU extends Processor {
         if (renderingDisabled()) {
             return;
         }
+        final int tileCycle = scanlineCycle % 8;
 
         if (Utilities.inRange(scanlineCycle, 1, 255) || Utilities.inRange(scanlineCycle, 321, 336)) {
             // Fetch background tiles
-            int tileCycle = scanlineCycle % 8;
             if (tileCycle == 0) {
                 this.memory.incrementHorizontal();
             } else if (tileCycle == 1) {
@@ -269,26 +269,36 @@ public class PPU extends Processor {
             } else if (tileCycle == 7) {
                 this.highBGByte = fetchHighBGTileByte();
             }
-
-            // Load the shift registers
-            if (scanlineCycle > 8 && tileCycle == 1) {
-                this.bgTiles.loadHighBG(highBGByte);
-                this.bgTiles.loadLowBG(lowBGByte);
-                this.bgTiles.loadAttributeTiles(attributeTableByte);
-            }
-
-            // Render if we're in the bounds of the screen
-            if (Utilities.inRange(scanlineNumber, 0, SCREEN_HEIGHT - 1)
-                    && Utilities.inRange(scanlineCycle, 0, SCREEN_WIDTH - 1)) {
-                renderPixel(scanlineCycle, scanlineNumber);
-            }
         }
 
+        // Load the shift registers
+        if ((Utilities.inRange(scanlineCycle, 9, 257)
+            || Utilities.inRange(scanlineCycle, 329, 337))
+            && tileCycle == 1) {
+            this.bgTiles.loadHighBG(highBGByte);
+            this.bgTiles.loadLowBG(lowBGByte);
+            this.bgTiles.loadAttributeTiles(attributeTableByte);
+        }
+
+        // Render if we're in the bounds of the screen
+        if (Utilities.inRange(scanlineNumber, 0, SCREEN_HEIGHT - 1)
+                && Utilities.inRange(scanlineCycle, 1, SCREEN_WIDTH)) {
+            renderPixel(scanlineCycle - 1, scanlineNumber);
+        }
+
+        // Shift the background tiles
+        if (Utilities.inRange(scanlineCycle, 1, 257) || Utilities.inRange(scanlineCycle, 321, 336)) {
+            this.bgTiles.shift();
+        }
+
+        // Increment Vram memory vertical
         if (scanlineCycle == 256) {
             this.memory.incrementVertical();
-        } else if (scanlineCycle == 257) {
-            // Comment out the line below for an interesting visual effect
+        }
+
+        if (scanlineCycle == 257) {
             this.memory.copyHorizontal();
+
             // Fetch the sprite data for the next scanline
             if (scanlineNumber >= 0) {
                 if (this.memory.fetchSprites(sprites, scanlineNumber + 1)) {
@@ -451,6 +461,11 @@ public class PPU extends Processor {
                         patternTable + Utilities.toUnsignedValue(this.nameTableByte) * 0x10 + fineYScroll + 0x08);
     }
 
+    /**
+     * Set the VBLANK on the first cycle, otherwise idle.
+     *
+     * @param scanlineCycle
+     */
     private void postRenderScanline(int scanlineCycle) {
         if (scanlineCycle == 1) {
             this.memory.setVblank();

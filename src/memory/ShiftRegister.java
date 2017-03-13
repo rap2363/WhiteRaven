@@ -17,14 +17,13 @@ public class ShiftRegister {
     }
 
     /**
-     * Get a palette color index for a pixel in the shift register and shift the registers.
+     * Get a palette color index for a pixel in the shift register.
      *
      * @return
      */
     public int getPixelIndex(final int fineX) {
         final byte bgColorLow = (byte) ((((this.lowBGTiles << fineX) & 0x8000) >> 15) & 0x0001);
         final byte bgColorHigh = (byte) ((((this.highBGTiles << fineX) & 0x8000) >> 15) & 0x0001);
-        this.shift();
 
         return ((currentAttribute & 0x03) << 2) | (bgColorHigh << 1) | (bgColorLow);
     }
@@ -32,7 +31,7 @@ public class ShiftRegister {
     /**
      * Shift the background tiles to the left by one. Called by the PPU after a pixel is rendered.
      */
-    private void shift() {
+    public void shift() {
         this.highBGTiles <<= 1;
         this.lowBGTiles <<= 1;
     }
