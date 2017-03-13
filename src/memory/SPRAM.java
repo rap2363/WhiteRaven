@@ -47,11 +47,12 @@ public class SPRAM extends MemoryMap {
             // Clear the buffer before we fetch new sprites
             buffer[i] = null;
         }
+
         for (int i = 0; i < size() && numSprites < buffer.length; i += 4) {
-            int y = Utilities.toUnsignedValue(read(i)) + 1;
-            int tileIndex = Utilities.toUnsignedValue(read(i + 1));
-            byte attributes = read(i + 2);
-            int x = Utilities.toUnsignedValue(read(i + 3));
+            int y = Utilities.toUnsignedValue(this.read(i)) + 1;
+            int tileIndex = Utilities.toUnsignedValue(this.read(i + 1));
+            byte attributes = this.read(i + 2);
+            int x = Utilities.toUnsignedValue(this.read(i + 3));
 
             if (Utilities.inRange(lineNumber, y, y + 7)) {
                 buffer[numSprites++] = new Sprite.Builder()

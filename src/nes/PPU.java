@@ -332,8 +332,8 @@ public class PPU extends Processor {
         }
 
         boolean backgroundRendered = false;
-        int bgPalettePixelIndex = this.bgTiles.getPixelIndex(this.memory.getFineXScroll());
-        int bgRGB = getColorFromBackgroundPalette(bgPalettePixelIndex);
+        final int bgPalettePixelIndex = this.bgTiles.getPixelIndex(this.memory.getFineXScroll());
+        final int bgRGB = getColorFromBackgroundPalette(bgPalettePixelIndex);
         if (!(x < 8 && !leftBG)) {
             setPixelInImage(x, y, bgRGB, imageBuffer.peek());
             backgroundRendered = !((bgPalettePixelIndex & 0x03) == 0x0);
@@ -350,7 +350,7 @@ public class PPU extends Processor {
      * @param backgroundRendered
      */
     private void renderSpritePixel(final int x, final int y, final boolean backgroundRendered) {
-        if (!showSprites) {
+        if (!showSprites && !(x < 8 && !leftSprites)) {
             return;
         }
 
@@ -382,7 +382,7 @@ public class PPU extends Processor {
             int spritePaletteIndex = ((sprite.attributes << 2) | (sHigh << 1) | sLow) & 0x0F;
             int spriteRGB = getColorFromSpritePalette(spritePaletteIndex);
 
-            if (!(sHigh == 0x0 && sLow == 0x0) && !(x < 8 && !leftSprites)) {
+            if (shouldRenderSprite(sHigh == 0x0 && sLow == 0x0, backgroundRendered, sprite.behindBackground())) {
                 setPixelInImage(x, y, spriteRGB, imageBuffer.peek());
             }
 
@@ -391,6 +391,25 @@ public class PPU extends Processor {
                 this.memory.setSpriteZeroHit();
             }
         }
+    }
+
+    /**
+     * Whether or not we should render the sprite pixel. This is based on the following decision table:
+     *
+     * backgroundRendered | transparentSprite | behindBackground | renderSprite ?
+     *         F                    T                  T/F                T
+     *         F                    F                  T/F                T
+     *         T                    T                  T/F                F
+     *         T                    F                  F                  T
+     *         T                    F                  T                  F
+     *
+     * @param transparentSprite
+     * @param backgroundRendered
+     * @param behindBackground
+     * @return
+     */
+    private boolean shouldRenderSprite(boolean transparentSprite, boolean backgroundRendered, boolean behindBackground) {
+        return (!transparentSprite && !behindBackground) || (transparentSprite && !backgroundRendered);
     }
 
     /**
