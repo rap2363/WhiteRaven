@@ -479,8 +479,8 @@ public class PPU extends Processor {
         tableIncrementsIndex = (ctrl >> 2) & 0x01;
         spriteTableAddressIndex = (ctrl >> 3) & 0x01;
         bgTableIndex = (ctrl >> 4) & 0x01;
-        normalSpriteSize = ((ctrl >> 5) & 0x01) == 0x00;
-        generateNMI = ((ctrl >> 7) & 0x01) == 0x01;
+        normalSpriteSize = !Utilities.bitAt(ctrl, 5);
+        generateNMI = Utilities.bitAt(ctrl, 7);
     }
 
     /**
@@ -498,14 +498,14 @@ public class PPU extends Processor {
     private void readMask() {
         final byte mask = memory.read(PPU_MASK);
 
-        greyscale = (mask & 0x01) == 0x01;
-        leftBG = ((mask >> 1) & 0x01) == 0x01;
-        leftSprites = ((mask >> 2) & 0x01) == 0x01;
-        showBG = ((mask >> 3) & 0x01) == 0x01;
-        showSprites = ((mask >> 4) & 0x01) == 0x01;
-        red = ((mask >> 5) & 0x01) == 0x01;
-        green = ((mask >> 6) & 0x01) == 0x01;
-        blue = ((mask >> 7) & 0x01) == 0x01;
+        greyscale = Utilities.bitAt(mask, 0);
+        leftBG = Utilities.bitAt(mask, 1);
+        leftSprites = Utilities.bitAt(mask, 2);
+        showBG = Utilities.bitAt(mask, 3);
+        showSprites = Utilities.bitAt(mask, 4);
+        red = Utilities.bitAt(mask, 5);
+        green = Utilities.bitAt(mask, 6);
+        blue = Utilities.bitAt(mask, 7);
     }
 
     /**
