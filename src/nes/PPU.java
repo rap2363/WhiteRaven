@@ -225,9 +225,9 @@ public class PPU extends Processor {
             this.memory.clearSpriteOverflow();
             imageBuffer.push(new int[SCREEN_HEIGHT * SCREEN_WIDTH]);
         }
+        renderScanline(-1, scanlineCycle);
 
         if (!renderingDisabled() && scanlineCycle >= 280 && scanlineCycle <= 304) {
-            renderScanline(-1, scanlineCycle);
             this.memory.copyVertical();
         }
 
@@ -256,7 +256,7 @@ public class PPU extends Processor {
         }
 
         if (Utilities.inRange(scanlineCycle, 1, 255) || Utilities.inRange(scanlineCycle, 321, 336)) {
-            // Fetch background tiles and render
+            // Fetch background tiles
             int tileCycle = scanlineCycle % 8;
             if (tileCycle == 0) {
                 this.memory.incrementHorizontal();
@@ -277,6 +277,7 @@ public class PPU extends Processor {
                 this.bgTiles.loadAttributeTiles(attributeTableByte);
             }
 
+            // Render if we're in the bounds of the screen
             if (Utilities.inRange(scanlineNumber, 0, SCREEN_HEIGHT - 1)
                     && Utilities.inRange(scanlineCycle, 0, SCREEN_WIDTH - 1)) {
                 renderPixel(scanlineCycle, scanlineNumber);
