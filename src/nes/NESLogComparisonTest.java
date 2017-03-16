@@ -31,13 +31,14 @@ public class NESLogComparisonTest {
         }
 
         public boolean equals(final State other) {
+            System.out.println(this.cycleCount + ", " + other.cycleCount);
             return this.PC == other.PC
                     && this.A == other.A
                     && this.X == other.X
                     && this.Y == other.Y
                     && this.P == other.P
-                    && this.SP == other.SP;
-//                    && this.cycleCount == other.cycleCount;
+                    && this.SP == other.SP
+                    && this.cycleCount == other.cycleCount;
         }
     }
 
@@ -90,6 +91,12 @@ public class NESLogComparisonTest {
                 System.out.println(line);
                 lineCount++;
                 console.cpu.execute();
+//                if (lineCount == 4982 || lineCount == 3054 || lineCount == 3065 || lineCount == 3378 || lineCount == 3385 || lineCount == 4369) {
+//                    console.cpu.cycleCount++;
+//                }
+//                if (lineCount == 4964) {
+//                    console.cpu.cycleCount--;
+//                }
             }
         } catch (IOException e) {
             e.printStackTrace();

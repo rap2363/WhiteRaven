@@ -19,7 +19,7 @@ public abstract class Utilities {
 
         if (b1 >= 0 && b2 >= 0) {
             return s < 0;
-        } else if (b1 <= 0 && b2 <= 0) {
+        } else if (b1 < 0 && b2 < 0) {
             return s > 0;
         }
         return false;
@@ -125,5 +125,15 @@ public abstract class Utilities {
      */
     public static boolean inRange(int value, int min, int max) {
         return value >= min && value <= max;
+    }
+
+    /**
+     * See if address1 and address2 are on the same page.
+     * @param address1
+     * @param address2
+     * @return
+     */
+    public static boolean samePage(int address1, int address2) {
+        return (address1 & 0xFF00) == (address2 & 0xFF00);
     }
 }

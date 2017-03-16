@@ -191,7 +191,7 @@ public class Cartridge {
     }
 
     public static void main(String[] args) {
-        Cartridge cartridge = Cartridge.makeFrom(Paths.get("/Users/rparanjpe/WhiteRaven/DonkeyKong.nes"));
+        Cartridge cartridge = Cartridge.makeFrom(Paths.get("/Users/rparanjpe/WhiteRaven/mario.nes"));
         byte[] patternTable = cartridge.getCHRRomBank(0);
         for (int i = 0; i < 512; i++) {
             int firstTileIndex = i * 16;
