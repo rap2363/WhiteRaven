@@ -350,7 +350,7 @@ public class PPU extends Processor {
      * @param backgroundRendered
      */
     private void renderSpritePixel(final int x, final int y, final boolean backgroundRendered) {
-        if (!showSprites && !(x < 8 && !leftSprites)) {
+        if (!showSprites || (x < 8 && !leftSprites)) {
             return;
         }
 
@@ -377,17 +377,17 @@ public class PPU extends Processor {
             int shiftX = sprite.flippedHorizontally() ? (7 - deltaX) : deltaX;
             byte sLow = (byte) ((spriteLow >> shiftX) & 0x01);
             byte sHigh = (byte) ((spriteHigh >> shiftX) & 0x01);
+            boolean transparentSprite = (sLow == 0x0 && sLow == 0x0);
 
             // Take the 2-bit attribute and concatenate with the sLow and sHigh like for the background
             int spritePaletteIndex = ((sprite.attributes << 2) | (sHigh << 1) | sLow) & 0x0F;
             int spriteRGB = getColorFromSpritePalette(spritePaletteIndex);
-
-            if (shouldRenderSprite(sHigh == 0x0 && sLow == 0x0, backgroundRendered, sprite.behindBackground())) {
+            if (shouldRenderSprite(transparentSprite, backgroundRendered, sprite.behindBackground())) {
                 setPixelInImage(x, y, spriteRGB, imageBuffer.peek());
             }
 
             // Check for a sprite-zero hit
-            if (sprite.priority == 0 && (sLow == 0x01 || sHigh == 0x01) && backgroundRendered) {
+            if (sprite.priority == 0 && !transparentSprite && backgroundRendered && x < 255) {
                 this.memory.setSpriteZeroHit();
             }
         }
@@ -409,7 +409,7 @@ public class PPU extends Processor {
      * @return
      */
     private boolean shouldRenderSprite(boolean transparentSprite, boolean backgroundRendered, boolean behindBackground) {
-        return (!transparentSprite && !behindBackground) || (transparentSprite && !backgroundRendered);
+        return (!transparentSprite && !behindBackground) || !backgroundRendered;
     }
 
     /**

@@ -227,7 +227,6 @@ public class IORegisterMemory extends MemoryMap {
         writeToSPRAddress((byte) (address + 0x04));
     }
 
-
     /**
      * Read the byte from SPR_DATA
      */
@@ -353,16 +352,16 @@ public class IORegisterMemory extends MemoryMap {
             vramAddress += 0x1000;
         } else {
             vramAddress &= ~0x7000;
-            int y = (vramAddress & 0x03E0) >> 5;
-            if (y == 29) {
+            byte y = (byte) ((vramAddress & 0x03E0) >> 5);
+            if (y == 0x1D) {
                 y = 0;
-                vramAddress ^= 0x800; // Switch vertical name table
-            } else if (y == 0x001F) {
+                vramAddress ^= 0x0800; // Switch vertical name table
+            } else if (y == 0x1F) {
                 y = 0;
             } else {
                 y++;
             }
-            vramAddress = (vramAddress & ~0x03E0) | (y << 5);
+            vramAddress = (vramAddress & ~0x03E0) | (((int) y) << 5);
         }
     }
 

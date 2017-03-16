@@ -13,18 +13,19 @@ public abstract class Branch extends Operation {
     @Override
     public void execute(CPU cpu) {
         byte value = AddressingModeUtilities.getValue(AddressingMode.Immediate, cpu, cpu.readAfterPC(numBytes - 1));
-
-        // Add a cycle if we cross the page boundary
-        if (Utilities.getOverflowFlag((byte) cpu.PC.read(), value, false)) {
-            cpu.cycleCount++;
-        }
+        cpu.PC.incrementBy(this.numBytes);
 
         if (branchCondition(cpu)) {
+            final int originalAddress = cpu.PC.read();
             cpu.PC.addByte(value);
             cpu.cycleCount++;
+
+            // Add a cycle if we cross the page boundary
+            if (!Utilities.samePage(cpu.PC.read(), originalAddress)) {
+                cpu.cycleCount++;
+            }
         }
 
-        cpu.PC.incrementBy(numBytes);
         cpu.cycleCount += cycles;
     }
 

@@ -22,7 +22,7 @@ abstract class JumpOperationBase extends Operation {
             byte msb = cpu.memory.read(targetAddress + 1);
 
             // Explicitly replicate jump bug on the 6502 (this employs the page wrap around if we are on the boundary)
-            if ((targetAddress & 0xFF) == 0xFF) {
+            if ((targetAddress & 0x00FF) == 0x00FF) {
                 msb = cpu.memory.read(targetAddress & 0xFF00);
             }
             cpu.PC.write(msb, lsb);

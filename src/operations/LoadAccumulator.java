@@ -117,12 +117,9 @@ class LoadAccumulatorIndirectY extends LoadAccumulatorOperationBase {
 
     @Override
     public void execute(CPU cpu) {
+        final int originalAddress = cpu.PC.read();
         super.execute(cpu);
-
-        byte[] bytes = cpu.readAfterPC(numBytes - 1);
-        int targetAddress = Utilities.toUnsignedValue(bytes[0]);
-        byte low = cpu.memory.read(targetAddress);
-        if (Utilities.getOverflowFlag(low, cpu.Y.readAsByte(), false)) {
+        if (!Utilities.samePage(originalAddress, cpu.PC.read())) {
             cpu.cycleCount++;
         }
     }
