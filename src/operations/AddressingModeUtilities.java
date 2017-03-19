@@ -230,13 +230,12 @@ public final class AddressingModeUtilities {
      * @return
      */
     private static int getAddressIndirectX(CPU cpu, byte[] bytes) {
-        System.out.println((byte) (bytes[0] + cpu.X.readAsByte()));
-        int targetAddress = Utilities.toUnsignedValue((byte) (bytes[0] + cpu.X.readAsByte()));
-        byte low = cpu.memory.read(targetAddress);
-        byte high = 0;
-        // Zero page wrap around
-        if (targetAddress == 0xFF) {
-            high = cpu.memory.read(0);
+        final int targetAddress = Utilities.toUnsignedValue((byte) (bytes[0] + cpu.X.readAsByte()));
+        final byte low = cpu.memory.read(targetAddress);
+        final byte high;
+        // Zero-Page wrap around
+        if (targetAddress == 0x00FF) {
+            high = cpu.memory.read(0x0000);
         } else {
             high = cpu.memory.read(Utilities.addUnsignedByteToInt(targetAddress, (byte) 0x01));
         }
@@ -265,17 +264,17 @@ public final class AddressingModeUtilities {
      * @param bytes
      */
     private static int getAddressIndirectY(CPU cpu, byte[] bytes) {
-        int targetAddress = Utilities.toUnsignedValue(bytes[0]);
-        byte low = cpu.memory.read(targetAddress);
-        byte high;
-        // Zero page wrap around
-        if (targetAddress == 0xFF) {
-            high = cpu.memory.read(0);
+        final int targetAddress = Utilities.toUnsignedValue(bytes[0]);
+        final byte low = cpu.memory.read(targetAddress);
+        final byte high;
+        // Zero-Page wrap around
+        if (targetAddress == 0x00FF) {
+            high = cpu.memory.read(0x0000);
         } else {
             high = cpu.memory.read(Utilities.addUnsignedByteToInt(targetAddress, (byte) 0x01));
         }
 
-        int concatenatedTarget = Utilities.toUnsignedValue(high, low);
+        final int concatenatedTarget = Utilities.toUnsignedValue(high, low);
         return Utilities.addUnsignedByteToInt(concatenatedTarget, cpu.Y.readAsByte());
     }
 
