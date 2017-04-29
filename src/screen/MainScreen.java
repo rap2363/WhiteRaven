@@ -11,8 +11,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 /**
- * Class to encompass drawing/refreshing the main screen. Keeps a buffer of images that need to be rendered and
- * renders at a fixed 60 frames per second.
+ * Class to encompass drawing/refreshing the main screen.
  */
 final public class MainScreen
 {

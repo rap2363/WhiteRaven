@@ -212,4 +212,8 @@ public class ConsoleMemory extends MemoryMap {
     public byte readFromJoypadOne() {
         return this.joypadOne.read();
     }
+
+    public void setJoypadOne(final Joypad joypad) {
+        this.joypadOne = joypad;
+    }
 }

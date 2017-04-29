@@ -1,5 +1,7 @@
 package test;
 
+import nes.KeyboardController;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -13,7 +15,10 @@ public class NesTestRomLauncher {
             System.exit(1);
         }
         final String pathToGame = args[0];
-        final nes.Console console = new nes.Console(pathToGame);
+        final nes.Console console = new nes.Console.Builder()
+                                        .setCartridgePath(pathToGame)
+                                        .setJoypadOne(new KeyboardController())
+                                        .build();
 
         while (true) {
             console.ppu.executeCycles(3);

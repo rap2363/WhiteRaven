@@ -8,11 +8,11 @@ import java.awt.event.KeyEvent;
  * A hard-coded keyboard controller with fixed button mappings
  */
 public class KeyboardController implements Joypad {
-    private int currentButton;
-    private boolean strobe;
+    protected int currentButton;
+    protected boolean strobe;
 
-    private boolean[] buttonsPressed = new boolean[8];
-    private static final int[] buttonMappings = {
+    protected boolean[] buttonsPressed = new boolean[8];
+    protected static final int[] buttonMappings = {
             KeyEvent.VK_A,      // A
             KeyEvent.VK_Z,      // B
             KeyEvent.VK_SHIFT,  // SELECT
@@ -45,7 +45,7 @@ public class KeyboardController implements Joypad {
         });
     }
 
-    private void reset() {
+    protected void reset() {
         currentButton = 0;
         strobe = false;
     }
@@ -64,7 +64,7 @@ public class KeyboardController implements Joypad {
      *
      * @return
      */
-    private synchronized byte getButton() {
+    protected synchronized byte getButton() {
         return (byte) (buttonsPressed[currentButton] ? 0x41 : 0x40);
     }
 
