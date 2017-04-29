@@ -13,16 +13,6 @@ public class SPRAM extends MemoryMap {
         super(SPRAM_NUM_BYTES);
     }
 
-    @Override
-    public byte read(int address) {
-        return this.memory[address % size()];
-    }
-
-    @Override
-    public void write(int address, byte value) {
-        this.memory[address % size()] = value;
-    }
-
     public void dmaWrite(byte[] values) {
         this.write(0x0, values);
     }

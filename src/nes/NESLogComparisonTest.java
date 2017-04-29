@@ -91,12 +91,6 @@ public class NESLogComparisonTest {
                 System.out.println(line);
                 lineCount++;
                 console.cpu.execute();
-//                if (lineCount == 4982 || lineCount == 3054 || lineCount == 3065 || lineCount == 3378 || lineCount == 3385 || lineCount == 4369) {
-//                    console.cpu.cycleCount++;
-//                }
-//                if (lineCount == 4964) {
-//                    console.cpu.cycleCount--;
-//                }
             }
         } catch (IOException e) {
             e.printStackTrace();

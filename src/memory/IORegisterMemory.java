@@ -1,6 +1,8 @@
 package memory;
 
 
+import operations.Utilities;
+
 public class IORegisterMemory extends MemoryMap {
     private static final int numPpuRegisters = 0x0008;
     private static final int numSecondSetRegisters = 0x0020;
@@ -28,6 +30,7 @@ public class IORegisterMemory extends MemoryMap {
     private boolean spriteOverflow;
     private boolean spriteZeroHit;
     private boolean vblank;
+    private byte lastWriteValue;
     public boolean dmaFlag;
 
     // Second set of registers (APU, controllers, DMA, etc.)
@@ -43,6 +46,7 @@ public class IORegisterMemory extends MemoryMap {
         fineXScroll = 0x0;
         firstWrite = true;
         ppuBufferData = 0x0;
+        lastWriteValue = 0x0;
         this.consoleMemory = consoleMemory;
         spriteOverflow = false;
         spriteZeroHit = false;
@@ -103,6 +107,7 @@ public class IORegisterMemory extends MemoryMap {
      */
     @Override
     public void write(int address, byte value) {
+        lastWriteValue = value;
         assert(address >= 0x0 && address < 0x2020);
         if (address < SECOND_SET_IO_REGISTERS) {
             address %= numPpuRegisters;
@@ -197,7 +202,8 @@ public class IORegisterMemory extends MemoryMap {
      * Read the byte from PPU_STATUS and reset the firstWrite and Vblank flag
      */
     private byte readFromStatus() {
-        byte status = (byte) ((vblank ? 0x80 : 0x0) + (spriteZeroHit ? 0x40 : 0x0) + (spriteOverflow ? 0x20 : 0x0));
+        byte status = (byte) ((vblank ? (1 << 7) : 0x0) + (spriteZeroHit ? (1 << 6) : 0x0) + (spriteOverflow ? (1 << 5) : 0x0));
+        status = (byte) (status + (lastWriteValue & 0x0F));
         firstWrite = true;
         clearVblank();
         return status;
@@ -222,7 +228,7 @@ public class IORegisterMemory extends MemoryMap {
      */
     private void writeToSPRData(byte value) {
         this.memory[SPR_DATA] = value;
-        int address = readFromSPRAddress();
+        int address = Utilities.toUnsignedValue(readFromSPRAddress());
         this.consoleMemory.writeToSPRData(address, value);
         writeToSPRAddress((byte) (address + 0x04));
     }
@@ -231,7 +237,7 @@ public class IORegisterMemory extends MemoryMap {
      * Read the byte from SPR_DATA
      */
     private byte readFromSPRData() {
-        return this.consoleMemory.readFromSPRData(readFromSPRAddress());
+        return this.consoleMemory.readFromSPRData(Utilities.toUnsignedValue(readFromSPRAddress()));
     }
 
     /**
@@ -301,7 +307,7 @@ public class IORegisterMemory extends MemoryMap {
         byte ppuData = this.consoleMemory.readFromPPU(vramAddress);
 
         // If we are in main VRAM, we load the read onto our internal buffer and return the previous buffer contents
-        if (vramAddress % 0x4000 < 0x3F00) {
+        if (vramAddress < 0x3F00) {
             byte temp = ppuBufferData;
             ppuBufferData = ppuData;
             ppuData = temp;

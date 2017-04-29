@@ -1,5 +1,7 @@
 package memory;
 
+import operations.Utilities;
+
 public class CPURAM extends MemoryMap {
     public static final int STACK_OFFSET = 0x0100;
     private static final int RAM_SIZE_IN_BYTES = 0x2000;
@@ -17,7 +19,6 @@ public class CPURAM extends MemoryMap {
      */
     @Override
     public byte read(int address) {
-        assert(address >= 0 && address < 0x2000);
         return memory[address % MIRROR_OFFSET];
     }
 
@@ -29,7 +30,6 @@ public class CPURAM extends MemoryMap {
      */
     @Override
     public void write(int address, byte value) {
-        assert(address >= 0 && address < 0x2000);
         memory[address % MIRROR_OFFSET] = value;
     }
 

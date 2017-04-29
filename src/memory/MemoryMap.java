@@ -3,7 +3,7 @@ package memory;
 /**
  * This abstract class can read/write to contiguous blocks of memory.
  */
-public abstract class MemoryMap {
+public class MemoryMap {
     protected byte[] memory;
 
     public MemoryMap(int memorySize) {
@@ -13,12 +13,14 @@ public abstract class MemoryMap {
     public MemoryMap() {}
 
     /**
-     * Read a byte from an address in memory
+     * Read a byte from an address in memory. These are generally overwritten in subclasses.
      *
      * @param address
      * @return
      */
-    public abstract byte read(int address);
+    public byte read(int address) {
+        return this.memory[address % size()];
+    }
 
     /**
      * Read a number of bytes from memory starting at an address.
@@ -40,7 +42,9 @@ public abstract class MemoryMap {
      *
      * @param address
      */
-    public abstract void write(int address, byte value);
+    public void write(int address, byte value) {
+        this.memory[address] = value;
+    }
 
     /**
      * Writes a number of bytes to memory starting at an address in memory.
