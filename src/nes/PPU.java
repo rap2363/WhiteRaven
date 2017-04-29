@@ -254,9 +254,10 @@ public class PPU extends Processor {
         if (renderingDisabled()) {
             return;
         }
+
         final int tileCycle = scanlineCycle % 8;
 
-        if (Utilities.inRange(scanlineCycle, 1, 255) || Utilities.inRange(scanlineCycle, 321, 336)) {
+        if (Utilities.inRange(scanlineCycle, 1, 256) || Utilities.inRange(scanlineCycle, 321, 336)) {
             // Fetch background tiles
             if (tileCycle == 0) {
                 this.memory.incrementHorizontal();

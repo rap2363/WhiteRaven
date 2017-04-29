@@ -18,17 +18,19 @@ public class Cartridge {
     private final byte[] expansionRom;
     private final byte[] saveRam;
 
-    private final int mapper;
+    private final int mapperType;
     private final MirroringMode mirroringMode;
+    // This will need to change when we can support multiple mappers!
+    private final DefaultMapper mapper = new DefaultMapper();
 
     private int lowerBankIndex;
     private int upperBankIndex;
     private int chrRomBankIndex;
 
-    private Cartridge(final byte[][] prgRomBanks, final byte[][] chrRomBanks, int mapper, MirroringMode mirroringMode) {
+    private Cartridge(final byte[][] prgRomBanks, final byte[][] chrRomBanks, int mapperType, MirroringMode mirroringMode) {
         this.prgRomBanks = prgRomBanks;
         this.chrRomBanks = chrRomBanks;
-        this.mapper = mapper;
+        this.mapperType = mapperType;
         this.mirroringMode = mirroringMode;
 
         // Temporary while we don't have bank switching or memory management controllers
@@ -64,7 +66,7 @@ public class Cartridge {
                 mirroringMode = MirroringMode.VERTICAL;
             }
 
-            final int mapper = romControlByteTwo + (romControlByteOne >> 4);
+            final int mapperType = romControlByteTwo + (romControlByteOne >> 4);
 
             // Now attempt to read in and fill up the PRG and CHR Rom banks
             final byte[][] prgRomBanks = new byte[numPrgRomBanks][PRG_ROM_BANK_SIZE];
@@ -81,7 +83,7 @@ public class Cartridge {
                 }
             }
 
-            return new Cartridge(prgRomBanks, chrRomBanks, mapper, mirroringMode);
+            return new Cartridge(prgRomBanks, chrRomBanks, mapperType, mirroringMode);
 
         } catch (IOException e) {
             System.out.println("File not found: " + nesFile.toString());
@@ -126,12 +128,12 @@ public class Cartridge {
     }
 
     /**
-     * Read a byte from the PRG-ROM address space
+     * Read a byte from the CPU ROM address space (this includes PRG, Expansion, and SRAM)
      *
      * @param address
      * @return
      */
-    public byte readPRGROM(int address) {
+    public byte readCPUROM(int address) {
         if (address < this.expansionRom.length) {
             return this.expansionRom[address];
         } else if (address < (this.expansionRom.length + this.saveRam.length)) {
@@ -146,13 +148,13 @@ public class Cartridge {
     }
 
     /**
-     * Write a byte into the PRG-ROM address space
+     * Write a byte into the CPU ROM address space
      * Q: Will this be called during normal execution?
      *
      * @param address
      * @param value
      */
-    public void writePRGROM(int address, byte value) {
+    public void writeCPUROM(int address, byte value) {
         if (address < this.expansionRom.length) {
             expansionRom[address] = value;
             return;

@@ -44,6 +44,7 @@ public class ConsoleMemory extends MemoryMap {
     @Override
     public byte read(int address) {
         address = address % addressableMemorySize;
+
         // address: [0x0 -> 0xFFFF]
         if (address < cpuram.size()) {
             // address: [0x0 -> 0x1FFF]
@@ -53,7 +54,7 @@ public class ConsoleMemory extends MemoryMap {
             return ioRegisterMemory.read(address - 0x2000);
         }
         // address: [0x4020 -> 0xFFFF]
-        return this.cartridge.readPRGROM(address - 0x4020);
+        return this.cartridge.readCPUROM(address - 0x4020);
     }
 
     /**
@@ -70,7 +71,7 @@ public class ConsoleMemory extends MemoryMap {
         } else if (address < 0x4020) {
             ioRegisterMemory.write(address - 0x2000, value);
         } else {
-            this.cartridge.writePRGROM(address - 0x4020, value);
+            this.cartridge.writeCPUROM(address - 0x4020, value);
         }
     }
 
