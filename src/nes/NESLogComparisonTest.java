@@ -72,7 +72,10 @@ public class NESLogComparisonTest {
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-        Console console = new Console("/Users/rparanjpe/WhiteRaven/nestest.nes");
+        Console console = new Console.Builder()
+                                .setCartridgePath("/Users/rparanjpe/WhiteRaven/nestest.nes")
+                                .setJoypadOne(new KeyboardController())
+                                .build();
         console.cpu.PC.write(0xC000);
         console.cpu.setCurrentInterrupt(Interrupt.NONE);
 
