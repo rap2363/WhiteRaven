@@ -1,9 +1,6 @@
 package test;
 
-import nes.KeyboardController;
-
-import java.util.Timer;
-import java.util.TimerTask;
+import io.KeyboardController;
 
 /**
  * Starts the Emulator with a path to a test rom to load in. Reads the status from $6000.

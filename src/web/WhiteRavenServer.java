@@ -1,8 +1,8 @@
 package web;
 
-import nes.Joypad;
-import nes.NetworkJoypad;
-import nes.NoopController;
+import io.Joypad;
+import io.NetworkJoypad;
+import io.NoopController;
 import screen.MainScreen;
 
 import java.net.ServerSocket;

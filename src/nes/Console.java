@@ -1,6 +1,9 @@
 package nes;
 
 import java.nio.file.Paths;
+
+import io.Joypad;
+import io.NoopController;
 import memory.ConsoleMemory;
 
 /**

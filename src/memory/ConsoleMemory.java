@@ -1,7 +1,7 @@
 package memory;
 
 import nes.Cartridge;
-import nes.Joypad;
+import io.Joypad;
 import operations.Utilities;
 
 /**

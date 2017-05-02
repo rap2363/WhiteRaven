@@ -1,4 +1,4 @@
-package nes;
+package io;
 
 import web.ButtonMessage;
 

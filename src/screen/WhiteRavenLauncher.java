@@ -1,6 +1,6 @@
 package screen;
 
-import nes.KeyboardController;
+import io.KeyboardController;
 
 import java.util.Timer;
 import java.util.TimerTask;

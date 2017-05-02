@@ -1,4 +1,4 @@
-package nes;
+package io;
 
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
@@ -7,7 +7,7 @@ import java.awt.event.KeyEvent;
 /**
  * A hard-coded keyboard controller with fixed button mappings
  */
-public class KeyboardController implements Joypad {
+public class KeyboardController implements Joypad, Controller {
     private int currentButton;
     private boolean strobe;
 
@@ -25,24 +25,7 @@ public class KeyboardController implements Joypad {
 
     public KeyboardController() {
         reset();
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
-            @Override
-            public boolean dispatchKeyEvent(KeyEvent ke) {
-                synchronized (KeyboardController.class) {
-                    for (int i = 0; i < buttonMappings.length; i++) {
-                        if (buttonMappings[i] == ke.getKeyCode()) {
-                            if (ke.getID() == KeyEvent.KEY_PRESSED) {
-                                buttonsPressed[i] = true;
-                            } else if (ke.getID() == KeyEvent.KEY_RELEASED) {
-                                buttonsPressed[i] = false;
-                            }
-                            break;
-                        }
-                    }
-                    return false;
-                }
-            }
-        });
+        initializeListener();
     }
 
     private void reset() {
@@ -71,5 +54,30 @@ public class KeyboardController implements Joypad {
     @Override
     public void write(byte value) {
         strobe = (value & 0x01) == 0x01;
+    }
+
+    /**
+     * Initialize a listener for keyboard events and set the appropriate buttons.
+     */
+    @Override
+    public void initializeListener() {
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
+            @Override
+            public boolean dispatchKeyEvent(KeyEvent ke) {
+                synchronized (KeyboardController.class) {
+                    for (int i = 0; i < buttonMappings.length; i++) {
+                        if (buttonMappings[i] == ke.getKeyCode()) {
+                            if (ke.getID() == KeyEvent.KEY_PRESSED) {
+                                buttonsPressed[i] = true;
+                            } else if (ke.getID() == KeyEvent.KEY_RELEASED) {
+                                buttonsPressed[i] = false;
+                            }
+                            break;
+                        }
+                    }
+                    return false;
+                }
+            }
+        });
     }
 }
