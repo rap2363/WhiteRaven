@@ -1,6 +1,6 @@
 package web;
 
-import nes.Joypad;
+import io.Joypad;
 
 import java.io.BufferedReader;
 import java.io.IOException;
