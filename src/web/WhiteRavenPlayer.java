@@ -38,7 +38,7 @@ public class WhiteRavenPlayer extends Thread {
                     String.format("Welcome to the WhiteRavenServer!\n" +
                                   "You have connected as a %s ", this.clientType.toString()));
         } catch (IOException e) {
-            System.out.println(String.format("%s died: ", this.toString()) + e);
+            System.out.println(String.format("%s died: ", this.toString()) + e.getMessage());
         }
     }
 
@@ -48,14 +48,7 @@ public class WhiteRavenPlayer extends Thread {
 
     @Override
     public void run() {
-        try {
-            System.out.println(String.format("Client %d has connected as a %s", this.clientId, this.clientType.toString()));
-            throw new IOException();
-        } catch (IOException e) {
-            System.out.println(String.format("%s died: ", this.toString()) + e);
-        } finally {
-            try {socket.close();} catch (IOException e) {}
-        }
+        System.out.println(String.format("Client %d has connected as a %s", this.clientId, this.clientType.toString()));
     }
 
     public static class Builder {
