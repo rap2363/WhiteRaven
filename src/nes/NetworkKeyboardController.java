@@ -9,15 +9,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 /**
- * A controller that listens for key presses over a network. Same hard coded buttons as the KeyboardController.
+ * A controller that listens for key presses over a network. Composed of a KeyboardController to use its methods.
  */
-public class NetworkKeyboardController extends KeyboardController implements Joypad {
+public class NetworkKeyboardController implements Joypad {
     private final ScheduledExecutorService listener = Executors.newSingleThreadScheduledExecutor();
     private SocketHandler socketHandler;
 
     public NetworkKeyboardController(final Socket listenSocket) {
         reset();
-
         try {
             this.socketHandler = new SocketHandler(listenSocket);
             listener.execute(socketHandler);
@@ -26,6 +25,38 @@ public class NetworkKeyboardController extends KeyboardController implements Joy
         } finally {
             listener.shutdown();
         }
+    }
+
+    protected int currentButton;
+    protected boolean strobe;
+    protected boolean[] buttonsPressed = new boolean[8];
+
+    protected void reset() {
+        currentButton = 0;
+        strobe = false;
+    }
+
+    @Override
+    public byte read() {
+        byte value = getButton();
+        if (!strobe) {
+            currentButton = (currentButton + 1) % 8;
+        }
+        return value;
+    }
+
+    /**
+     * Synchronized to keep the buttonsPressed locked
+     *
+     * @return
+     */
+    protected synchronized byte getButton() {
+        return (byte) (buttonsPressed[currentButton] ? 0x41 : 0x40);
+    }
+
+    @Override
+    public void write(byte value) {
+        strobe = (value & 0x01) == 0x01;
     }
 
     /**

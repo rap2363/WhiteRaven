@@ -72,7 +72,6 @@ public class WhiteRavenServer {
             final Map<ClientType, List<WhiteRavenPlayer>> playerMap) {
         final ClientType clientType;
         final Joypad joypad;
-        new NetworkKeyboardController(clientSocket);
         if (!playerMap.containsKey(ClientType.FIRST_PLAYER)) {
             clientType = ClientType.FIRST_PLAYER;
             joypad = new NetworkKeyboardController(clientSocket);
