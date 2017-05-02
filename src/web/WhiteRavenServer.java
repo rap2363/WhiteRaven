@@ -1,7 +1,7 @@
 package web;
 
 import nes.Joypad;
-import nes.NetworkKeyboardController;
+import nes.NetworkJoypad;
 import nes.NoopController;
 import screen.MainScreen;
 
@@ -74,7 +74,7 @@ public class WhiteRavenServer {
         final Joypad joypad;
         if (!playerMap.containsKey(ClientType.FIRST_PLAYER)) {
             clientType = ClientType.FIRST_PLAYER;
-            joypad = new NetworkKeyboardController(clientSocket);
+            joypad = new NetworkJoypad(clientSocket);
         } else if (!playerMap.containsKey(ClientType.SECOND_PLAYER)) {
             clientType = ClientType.SECOND_PLAYER;
             joypad = new NoopController();

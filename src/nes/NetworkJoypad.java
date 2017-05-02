@@ -9,14 +9,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 /**
- * A controller that listens for key presses over a network. Composed of a KeyboardController to use its methods.
+ * A joypad that listens for button presses over a network connection. This runs on the server and its counterpart
+ * (a ClientController) should run on the client.
  */
-public class NetworkKeyboardController implements Joypad {
+public class NetworkJoypad implements Joypad {
     private int currentButton;
     private boolean strobe;
     private final boolean[] buttonsPressed = new boolean[8];
 
-    public NetworkKeyboardController(final Socket listenSocket) {
+    public NetworkJoypad(final Socket listenSocket) {
         reset();
         final ScheduledExecutorService listener = Executors.newSingleThreadScheduledExecutor();
         try {
@@ -73,7 +74,7 @@ public class NetworkKeyboardController implements Joypad {
                     byte[] readBuffer = new byte[1];
                     inputStream.read(readBuffer);
                     final ButtonMessage buttonMessage = ButtonMessage.deserializeFrom(readBuffer);
-                    NetworkKeyboardController.this.handleButtonMessage(buttonMessage);
+                    NetworkJoypad.this.handleButtonMessage(buttonMessage);
                 } catch (IOException e) {
                     System.out.println("IOException thrown while reading from input stream: " + e.getStackTrace());
                 }
