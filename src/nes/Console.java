@@ -11,11 +11,12 @@ import memory.ConsoleMemory;
  * Cartridge)
  */
 public class Console {
-    public final ConsoleMemory consoleMemory;
     public final CPU cpu;
     public final PPU ppu;
-    public final Cartridge cartridge;
-    public Joypad joypadOne;
+    private final ConsoleMemory consoleMemory;
+    private final Cartridge cartridge;
+    private Joypad joypadOne;
+    private Joypad joypadTwo;
 
     /**
      * Allow the option of setting joypadOne later. This lets us add players after a game has started.
@@ -25,12 +26,25 @@ public class Console {
         this.consoleMemory.setJoypadOne(joypadOne);
     }
 
-    private Console(ConsoleMemory consoleMemory, CPU cpu, PPU ppu, Cartridge cartridge, Joypad joypadOne) {
+    public void setJoypadTwo(final Joypad joypadTwo) {
+        this.joypadTwo = joypadTwo;
+        this.consoleMemory.setJoypadTwo(joypadTwo);
+    }
+
+    private Console(
+            ConsoleMemory consoleMemory,
+            CPU cpu,
+            PPU ppu,
+            Cartridge cartridge,
+            Joypad joypadOne,
+            Joypad joypadTwo
+    ) {
         this.consoleMemory = consoleMemory;
         this.cpu = cpu;
         this.ppu = ppu;
         this.cartridge = cartridge;
         this.joypadOne = joypadOne;
+        this.joypadTwo = joypadTwo;
     }
 
     public static class Builder {
@@ -39,10 +53,7 @@ public class Console {
         private PPU ppu;
         private Cartridge cartridge;
         private Joypad joypadOne;
-
-        public Builder() {
-
-        }
+        private Joypad joypadTwo;
 
         public Builder setCartridgePath(final String cartridgePath) {
             this.cartridge = Cartridge.makeFrom(Paths.get(cartridgePath));
@@ -54,15 +65,24 @@ public class Console {
             return this;
         }
 
+        public Builder setJoypadTwo(final Joypad joypadTwo) {
+            this.joypadTwo = joypadTwo;
+            return this;
+        }
+
         public Console build() {
             if (this.joypadOne == null) {
                 this.joypadOne = new NoopController();
             }
-            this.consoleMemory = new ConsoleMemory(cartridge, joypadOne);
+            if (this.joypadTwo == null) {
+                this.joypadTwo = new NoopController();
+            }
+
+            this.consoleMemory = new ConsoleMemory(cartridge, joypadOne, joypadTwo);
             this.cpu = new CPU(consoleMemory);
             this.ppu = new PPU(consoleMemory);
 
-            return new Console(consoleMemory, cpu, ppu, cartridge, joypadOne);
+            return new Console(consoleMemory, cpu, ppu, cartridge, joypadOne, joypadTwo);
         }
     }
 }

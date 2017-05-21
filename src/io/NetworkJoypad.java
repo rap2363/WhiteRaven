@@ -1,6 +1,6 @@
 package io;
 
-import web.ButtonMessage;
+import web.transport.ButtonMessage;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -73,7 +73,7 @@ public class NetworkJoypad implements Joypad {
                 try {
                     byte[] readBuffer = new byte[1];
                     inputStream.read(readBuffer);
-                    final ButtonMessage buttonMessage = ButtonMessage.deserializeFrom(readBuffer);
+                    final ButtonMessage buttonMessage = ButtonMessage.deserialize(readBuffer);
                     NetworkJoypad.this.handleButtonMessage(buttonMessage);
                 } catch (IOException e) {
                     System.out.println("IOException thrown while reading from input stream: " + e.getStackTrace());

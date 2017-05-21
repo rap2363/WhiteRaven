@@ -1,6 +1,6 @@
 package io;
 
-import web.ButtonMessage;
+import web.transport.ButtonMessage;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;

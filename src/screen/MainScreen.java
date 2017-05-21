@@ -1,8 +1,5 @@
 package screen;
 
-import memory.CircularBuffer;
-import sun.applet.Main;
-
 import java.awt.BorderLayout;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
@@ -15,13 +12,12 @@ import javax.swing.JPanel;
  */
 final public class MainScreen
 {
-    private final WhiteRavenPanel panel;
-    private final JFrame frame;
-    private final CircularBuffer<int[]> imageBuffer;
-
     private static final int SCREEN_WIDTH = nes.PPU.SCREEN_WIDTH;
     private static final int SCREEN_HEIGHT = nes.PPU.SCREEN_HEIGHT;
-    private static final int IMAGE_BUFFER_SIZE = 1;
+
+    private final WhiteRavenPanel panel;
+    private final JFrame frame;
+    private int[] imageData;
 
     public MainScreen() {
         panel = new MainScreen.WhiteRavenPanel();
@@ -32,31 +28,29 @@ final public class MainScreen
         frame.setResizable(true);
         frame.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
         frame.setVisible(true);
-
-        imageBuffer = new CircularBuffer<>(IMAGE_BUFFER_SIZE);
+        imageData = new int[SCREEN_WIDTH * SCREEN_HEIGHT];
     }
 
     /**
-     * Push a new image onto the buffer
+     * Set the new image
      *
      * @param image
      */
     public synchronized void push(final int[] image) {
-        imageBuffer.push(image);
+        if (image != null) {
+            imageData = image;
+        }
     }
 
     /**
-     * Pop an image off the buffer to paint
+     * Paint the image
      */
     public synchronized void redraw() {
-        if (imageBuffer.peek() != null) {
-            this.panel.processNewImage(imageBuffer.get());
-        }
+        this.panel.processNewImage(imageData);
         this.panel.repaint();
     }
 
-    private static class WhiteRavenPanel extends JPanel
-    {
+    private static class WhiteRavenPanel extends JPanel {
         private final BufferedImage screenImage;
         private final int[] imgData;
 
