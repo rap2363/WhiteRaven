@@ -1,6 +1,7 @@
 package screen;
 
 import io.KeyboardController;
+import io.NoopController;
 
 import java.util.Timer;
 import java.util.TimerTask;

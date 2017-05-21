@@ -1,9 +1,7 @@
 package web;
 
-import io.Joypad;
 import io.NetworkJoypad;
-import io.NoopController;
-import screen.MainScreen;
+import web.transport.ImageMessage;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,8 +12,8 @@ import java.util.*;
  */
 public class WhiteRavenServer {
     private static final int SERVER_PORT = 8888;
-    private static final int FRAMES_PER_SECOND = 30;
-    private static final int FRAME_TIME = 34; // 30 FPS
+    static final int FRAMES_PER_SECOND = 60;
+    static final int FRAME_TIME = 17;
     private static nes.Console console;
 
     public static void main(String[] args) throws Exception {
@@ -27,10 +25,14 @@ public class WhiteRavenServer {
         }
 
         final String pathToGame = args[0];
-        console = new nes.Console.Builder().setCartridgePath(pathToGame).build();
-        final MainScreen mainScreen = new MainScreen();
+        console = new nes.Console.Builder()
+                .setCartridgePath(pathToGame).build();
         final Timer timer = new Timer();
         final Map<ClientType, List<WhiteRavenPlayer>> players = new HashMap<>();
+        // Initialize the map
+        for (ClientType clientType : ClientType.values()) {
+            players.put(clientType, new ArrayList<>());
+        }
 
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -42,8 +44,18 @@ public class WhiteRavenServer {
                         console.cpu.triggerInterrupt(nes.Interrupt.NMI);
                         console.ppu.triggerVerticalBlank = false;
                         int[] image = console.ppu.getImage();
-                        mainScreen.push(image);
-                        mainScreen.redraw();
+                        final ImageMessage imageMessage = new ImageMessage(image);
+                        for (final List<WhiteRavenPlayer> playerList : players.values()) {
+                            for (final Iterator<WhiteRavenPlayer> playerIter = playerList.iterator(); playerIter.hasNext();) {
+                                final WhiteRavenPlayer player = playerIter.next();
+                                if (player.alive()) {
+                                    player.sendImage(imageMessage.serialize());
+                                } else {
+                                    playerIter.remove();
+                                    System.out.println("Player has died: " + player.toString());
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -71,28 +83,22 @@ public class WhiteRavenServer {
             final Socket clientSocket,
             final Map<ClientType, List<WhiteRavenPlayer>> playerMap) {
         final ClientType clientType;
-        final Joypad joypad;
-        if (!playerMap.containsKey(ClientType.FIRST_PLAYER)) {
+
+        if (playerMap.get(ClientType.FIRST_PLAYER).size() == 0) {
             clientType = ClientType.FIRST_PLAYER;
-            joypad = new NetworkJoypad(clientSocket);
-        } else if (!playerMap.containsKey(ClientType.SECOND_PLAYER)) {
+            console.setJoypadOne(new NetworkJoypad(clientSocket));
+        } else if (playerMap.get(ClientType.SECOND_PLAYER).size() == 0) {
             clientType = ClientType.SECOND_PLAYER;
-            joypad = new NoopController();
+            console.setJoypadTwo(new NetworkJoypad(clientSocket));
         } else {
             clientType = ClientType.VIEWER;
-            joypad = new NoopController();
         }
-        console.setJoypadOne(joypad);
 
         final WhiteRavenPlayer player = new WhiteRavenPlayer.Builder()
                                             .setClientType(clientType)
                                             .setSocket(clientSocket)
-                                            .setJoypad(joypad)
                                             .build();
 
-        if (!playerMap.containsKey(clientType)) {
-            playerMap.put(clientType, new ArrayList<>());
-        }
         playerMap.get(clientType).add(player);
 
         // Run the player's thread

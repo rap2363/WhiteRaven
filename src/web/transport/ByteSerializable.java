@@ -1,4 +1,4 @@
-package web;
+package web.transport;
 
 import java.io.Serializable;
 
@@ -13,12 +13,4 @@ public interface ByteSerializable<T> extends Serializable {
      * @return
      */
     byte[] serialize();
-
-    /**
-     * Deserialize an array of bytes into the object
-     *
-     * @param bytes
-     * @return
-     */
-    T deserialize(final byte[] bytes);
 }

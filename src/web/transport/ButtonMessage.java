@@ -1,4 +1,4 @@
-package web;
+package web.transport;
 
 import operations.Utilities;
 
@@ -39,12 +39,7 @@ public enum ButtonMessage implements ByteSerializable<ButtonMessage> {
      * @param bytes
      * @return
      */
-    @Override
-    public ButtonMessage deserialize(final byte[] bytes) {
-        return ButtonMessage.deserializeFrom(bytes);
-    }
-
-    public static ButtonMessage deserializeFrom(final byte[] bytes) {
+    public static ButtonMessage deserialize(final byte[] bytes) {
         return ButtonMessage.values()[Utilities.toUnsignedValue(bytes[0])];
     }
 }

@@ -1,12 +1,8 @@
 package web;
 
-import io.Joypad;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 
 /**
  * Encapsulates a player's thread of the WhiteRavenServer over the network. This thread runs on the server and is
@@ -15,31 +11,52 @@ import java.net.Socket;
 public class WhiteRavenPlayer extends Thread {
     private static int clientCount = 0;
 
+    // If we catch NUM_SOCKET_EXCEPTIONS socket exceptions in a row during image serialization, we'll mark this player
+    // as dead and it will be ejected from the client map.
+    private final static int NUM_SOCKET_EXCEPTIONS = 3;
     private final int clientId;
-    private final Socket socket;
     private final ClientType clientType;
-    private final Joypad joypad;
-    private BufferedReader inputReader;
-    private PrintWriter outputWriter;
+    private OutputStream outputStream;
+    private int numRetries;
+    private boolean alive;
 
     private WhiteRavenPlayer(
             final Socket socket,
-            final ClientType clientType,
-            final Joypad joypad
+            final ClientType clientType
     ) {
         this.clientId = clientCount++;
-        this.socket = socket;
-        this.joypad = joypad;
         this.clientType = clientType;
+        this.numRetries = NUM_SOCKET_EXCEPTIONS;
+        this.alive = true;
         try {
-            inputReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            outputWriter = new PrintWriter(socket.getOutputStream(), true);
-            outputWriter.println(
-                    String.format("Welcome to the WhiteRavenServer!\n" +
-                                  "You have connected as a %s ", this.clientType.toString()));
+            this.outputStream = socket.getOutputStream();
         } catch (IOException e) {
-            System.out.println(String.format("%s died: ", this.toString()) + e.getMessage());
+            System.out.println(String.format("Can't connect to player: %s: ", this.toString()) + e.getMessage());
         }
+    }
+
+    /**
+     * Sends an image to the player depending on whether or not
+     */
+    public void sendImage(final byte[] imageData) {
+        try {
+            this.getOutputStream().write(imageData);
+            this.numRetries = 0;
+        } catch (SocketException e) {
+            if (++numRetries >= NUM_SOCKET_EXCEPTIONS) {
+                this.alive = false;
+            }
+        } catch (IOException e) {
+            System.out.println("Error serializing image to socket for client: " + this.clientId);
+        }
+    }
+
+    public boolean alive() {
+        return alive;
+    }
+
+    private OutputStream getOutputStream() {
+        return outputStream;
     }
 
     public String toString() {
@@ -54,7 +71,6 @@ public class WhiteRavenPlayer extends Thread {
     public static class Builder {
         private Socket socket;
         private ClientType clientType;
-        private Joypad joypad;
 
         public Builder setSocket(final Socket socket) {
             this.socket = socket;
@@ -66,13 +82,8 @@ public class WhiteRavenPlayer extends Thread {
             return this;
         }
 
-        public Builder setJoypad(final Joypad joypad) {
-            this.joypad = joypad;
-            return this;
-        }
-
         public WhiteRavenPlayer build() {
-            return new WhiteRavenPlayer(socket, clientType, joypad);
+            return new WhiteRavenPlayer(socket, clientType);
         }
     }
 }

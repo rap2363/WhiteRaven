@@ -25,13 +25,15 @@ public class ConsoleMemory extends MemoryMap {
     private IORegisterMemory ioRegisterMemory = new IORegisterMemory(this);
     private Cartridge cartridge;
     private Joypad joypadOne;
+    private Joypad joypadTwo;
 
     private static final int addressableMemorySize = 0x10000;
 
-    public ConsoleMemory(final Cartridge cartridge, final Joypad joypadOne) {
+    public ConsoleMemory(final Cartridge cartridge, final Joypad joypadOne, final Joypad joypadTwo) {
         super(0);
         this.cartridge = cartridge;
         this.joypadOne = joypadOne;
+        this.joypadTwo = joypadTwo;
         this.vram.setMirroringMode(cartridge.getMirroringMode());
     }
 
@@ -215,5 +217,17 @@ public class ConsoleMemory extends MemoryMap {
 
     public void setJoypadOne(final Joypad joypad) {
         this.joypadOne = joypad;
+    }
+
+    public void writeToJoypadTwo(byte value) {
+        this.joypadTwo.write(value);
+    }
+
+    public byte readFromJoypadTwo() {
+        return this.joypadTwo.read();
+    }
+
+    public void setJoypadTwo(final Joypad joypad) {
+        this.joypadTwo = joypad;
     }
 }

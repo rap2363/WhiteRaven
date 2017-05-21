@@ -91,6 +91,8 @@ public class IORegisterMemory extends MemoryMap {
                 // address: [0x2000 -> 0x201F]
                 case JOYPAD_1:
                     return this.consoleMemory.readFromJoypadOne();
+                case JOYPAD_2:
+                    return this.consoleMemory.readFromJoypadTwo();
                 default:
                     break;
             }
@@ -146,6 +148,9 @@ public class IORegisterMemory extends MemoryMap {
                     break;
                 case JOYPAD_1:
                     this.consoleMemory.writeToJoypadOne(value);
+                    break;
+                case JOYPAD_2:
+                    this.consoleMemory.writeToJoypadTwo(value);
                     break;
                 default:
                     break;
