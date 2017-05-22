@@ -1,7 +1,7 @@
 # Introduction
 WhiteRaven is an ongoing project to build an NES emulator written in Java. In addition to emulating the NES environment, WhiteRaven can also support online multiplayer so you can play with friends.
 
-![](http://imgur.com/OGRGdd4)
+![Screenshot from Balloon Fight](http://imgur.com/OGRGdd4.png)
 
 # Dependencies
 The only dependency is Java 8. If you want to build WhiteRaven, get the JDK: http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
