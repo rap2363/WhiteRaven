@@ -1,10 +1,8 @@
-# Eclipse related settings
-bin/
-.project
-.settings
-.classpath
-
-# IntelliJ related setting
+# IntelliJ related settings
+out
 *.iml
 .idea
 META-INF
+
+# Any ROMS
+*.nes

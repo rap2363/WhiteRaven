@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_whiteraven" default="compile.module.whiteraven">
+  <dirname property="module.whiteraven.basedir" file="${ant.file.module_whiteraven}"/>
+  
+  <property name="module.jdk.home.whiteraven" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.whiteraven" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.whiteraven" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.whiteraven" value="-encoding UTF-8 -source 8 -target 8 ${compiler.args}"/>
+  
+  <property name="whiteraven.output.dir" value="${module.whiteraven.basedir}/out/production/WhiteRaven"/>
+  <property name="whiteraven.testoutput.dir" value="${module.whiteraven.basedir}/out/test/WhiteRaven"/>
+  
+  <path id="whiteraven.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="whiteraven.module.production.classpath">
+    <path refid="${module.jdk.classpath.whiteraven}"/>
+    <pathelement location="${idea.home}/lib/hamcrest-core-1.3.jar"/>
+    <pathelement location="${idea.home}/lib/junit-4.12.jar"/>
+  </path>
+  
+  <path id="whiteraven.runtime.production.module.classpath">
+    <pathelement location="${whiteraven.output.dir}"/>
+    <pathelement location="${idea.home}/lib/hamcrest-core-1.3.jar"/>
+    <pathelement location="${idea.home}/lib/junit-4.12.jar"/>
+  </path>
+  
+  <path id="whiteraven.module.classpath">
+    <path refid="${module.jdk.classpath.whiteraven}"/>
+    <pathelement location="${whiteraven.output.dir}"/>
+    <pathelement location="${idea.home}/lib/hamcrest-core-1.3.jar"/>
+    <pathelement location="${idea.home}/lib/junit-4.12.jar"/>
+  </path>
+  
+  <path id="whiteraven.runtime.module.classpath">
+    <pathelement location="${whiteraven.testoutput.dir}"/>
+    <pathelement location="${whiteraven.output.dir}"/>
+    <pathelement location="${idea.home}/lib/hamcrest-core-1.3.jar"/>
+    <pathelement location="${idea.home}/lib/junit-4.12.jar"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.whiteraven">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.whiteraven">
+    <patternset refid="excluded.from.module.whiteraven"/>
+  </patternset>
+  
+  <path id="whiteraven.module.sourcepath">
+    <dirset dir="${module.whiteraven.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.whiteraven" depends="compile.module.whiteraven.production,compile.module.whiteraven.tests" description="Compile module WhiteRaven"/>
+  
+  <target name="compile.module.whiteraven.production" depends="register.custom.compilers" description="Compile module WhiteRaven; production classes">
+    <mkdir dir="${whiteraven.output.dir}"/>
+    <javac2 destdir="${whiteraven.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.whiteraven}/javac">
+      <compilerarg line="${compiler.args.whiteraven}"/>
+      <bootclasspath refid="whiteraven.module.bootclasspath"/>
+      <classpath refid="whiteraven.module.production.classpath"/>
+      <src refid="whiteraven.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.whiteraven"/>
+    </javac2>
+    
+    <copy todir="${whiteraven.output.dir}">
+      <fileset dir="${module.whiteraven.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.whiteraven.tests" depends="register.custom.compilers,compile.module.whiteraven.production" description="compile module WhiteRaven; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.whiteraven" description="cleanup module">
+    <delete dir="${whiteraven.output.dir}"/>
+    <delete dir="${whiteraven.testoutput.dir}"/>
+  </target>
+</project>
