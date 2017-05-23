@@ -19,9 +19,9 @@ If this builds successfully, you should have 3 jar files under `out/artifacts`: 
 
 |  Main Class | Executable  |
 |---|---|
-|  `screen.WhiteRavenLauncher`  | `WhiteRaven.jar`  |
-|  `web.WhiteRavenServer` | `WhiteRavenServer.jar`  |
-|  `web.WhiteRavenClient` | `WhiteRavenClient.jar`  |
+|  `main.java.screen.WhiteRavenLauncher`  | `WhiteRaven.jar`  |
+|  `main.java.web.WhiteRavenServer` | `WhiteRavenServer.jar`  |
+|  `main.java.web.WhiteRavenClient` | `WhiteRavenClient.jar`  |
 
 # Running the Emulator
 You can find the appropriate jar files under the `Releases` tab.
