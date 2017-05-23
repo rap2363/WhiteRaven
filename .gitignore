@@ -4,5 +4,6 @@ out
 .idea
 META-INF
 
-# Any ROMS
+# ROMS/Images
 *.nes
+*.png
