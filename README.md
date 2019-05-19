@@ -11,11 +11,11 @@ If you just want to run it using the latest release, get a JRE:
 http://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html
 
 # Building WhiteRaven
-You can use IntelliJ IDEA + Apache Ant to build WhiteRaven. Load the project into IntelliJ and run:
+You can use gradle to build WhiteRaven. Run:
 
-`ant -buildfile whiteraven.xml`
+`gradle WhiteRavenLauncher WhiteRavenClient WhiteRavenServer`
 
-If this builds successfully, you should have 3 jar files under `out/artifacts`: `WhiteRaven.jar`, `WhiteRavenServer.jar` and `WhiteRavenClient.jar` which correspond to the stand alone emulator, server application, and client application respectively.
+If this builds successfully, you should have 3 jar files under `build/libs/`: `WhiteRaven-{VERSION}.jar`, `WhiteRavenServer-{VERSION}.jar` and `WhiteRavenClient-{VERSION}.jar` which correspond to the stand alone emulator, server application, and client application respectively.
 
 |  Main Class | Executable  |
 |---|---|
