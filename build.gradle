@@ -1,0 +1,48 @@
+apply plugin: 'java'
+
+version = '1.0'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+task WhiteRavenLauncher(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'White Raven Launcher',
+                'Implementation-Version': version,
+                'Main-Class': 'main.java.screen.WhiteRavenLauncher'
+    }
+    baseName = 'WhiteRavenLauncher'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+task WhiteRavenClient(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'White Raven Client',
+                'Implementation-Version': version,
+                'Main-Class': 'main.java.web.WhiteRavenClient'
+    }
+    baseName = 'WhiteRavenClient'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+task WhiteRavenServer(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'White Raven Server',
+                'Implementation-Version': version,
+                'Main-Class': 'main.java.web.WhiteRavenServer'
+    }
+    baseName = 'WhiteRavenServer'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+//Get dependencies from Maven central repository
+repositories {
+    mavenCentral()
+}
+
+//Project dependencies
+dependencies {
+    compile 'ch.qos.logback:logback-classic:1.1.2'
+}

@@ -4,6 +4,11 @@ out
 .idea
 META-INF
 
+# Gradle
+.gradle
+build/
+
 # ROMS/Images
 *.nes
 *.png
+games
