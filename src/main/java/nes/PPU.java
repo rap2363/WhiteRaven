@@ -1,10 +1,10 @@
-package main.java.nes;
+package nes;
 
-import main.java.memory.CircularBuffer;
-import main.java.memory.ConsoleMemory;
-import main.java.memory.ShiftRegister;
-import main.java.memory.Sprite;
-import main.java.operations.Utilities;
+import memory.CircularBuffer;
+import memory.ConsoleMemory;
+import memory.ShiftRegister;
+import memory.Sprite;
+import operations.Utilities;
 
 /**
  * Models the PPU architecture

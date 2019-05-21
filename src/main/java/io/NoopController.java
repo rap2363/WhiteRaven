@@ -1,4 +1,4 @@
-package main.java.io;
+package io;
 
 /**
  * This is a dummy class that is used by VIEWER clients in the main.java.web application (because we don't need to actually listen

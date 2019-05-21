@@ -1,6 +1,6 @@
-package main.java.memory;
+package memory;
 
-import main.java.operations.Utilities;
+import operations.Utilities;
 
 /**
  * Immutable structure to represent a sprite fetched from SPR-RAM. Use the Builder class to build sprites.

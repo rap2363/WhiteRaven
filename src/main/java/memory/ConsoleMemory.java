@@ -1,8 +1,8 @@
-package main.java.memory;
+package memory;
 
-import main.java.nes.Cartridge;
-import main.java.io.Joypad;
-import main.java.operations.Utilities;
+import nes.Cartridge;
+import io.Joypad;
+import operations.Utilities;
 
 /**
  * This object manages all reads and writes into main main.java.memory. It acts similarly to virtual main.java.memory and as a layer

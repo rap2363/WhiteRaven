@@ -1,6 +1,6 @@
-package main.java.operations;
+package operations;
 
-import main.java.nes.CPU;
+import nes.CPU;
 
 /**
  * An abstract class to represent a specific opcode + addressing mode.

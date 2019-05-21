@@ -1,4 +1,4 @@
-package main.java.operations;
+package operations;
 
 public abstract class Utilities {
     protected static final int MAX_EIGHT_BIT_VALUE = 256;

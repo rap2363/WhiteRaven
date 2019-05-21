@@ -1,4 +1,4 @@
-package main.java.web.transport;
+package web.transport;
 
 import java.io.Serializable;
 

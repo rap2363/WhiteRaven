@@ -1,6 +1,6 @@
-package main.java.operations;
+package operations;
 
-import main.java.nes.CPU;
+import nes.CPU;
 
 class BranchIfEqualRelative extends Branch {
     public BranchIfEqualRelative(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {

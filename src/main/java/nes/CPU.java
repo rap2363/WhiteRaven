@@ -1,17 +1,17 @@
-package main.java.nes;
+package nes;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-import main.java.memory.SixteenBitRegister;
-import main.java.memory.EightBitRegister;
-import main.java.memory.ProcessorStatus;
-import main.java.memory.ConsoleMemory;
-import main.java.memory.CPURAM;
+import memory.SixteenBitRegister;
+import memory.EightBitRegister;
+import memory.ProcessorStatus;
+import memory.ConsoleMemory;
+import memory.CPURAM;
 
-import main.java.operations.*;
+import operations.*;
 
 /**
  * Models the NES CPU and 6502 processor architecture

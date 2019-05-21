@@ -1,10 +1,10 @@
-package main.java.nes;
+package nes;
 
 import java.nio.file.Paths;
 
-import main.java.io.Joypad;
-import main.java.io.NoopController;
-import main.java.memory.ConsoleMemory;
+import io.Joypad;
+import io.NoopController;
+import memory.ConsoleMemory;
 
 /**
  * Encompasses multiple emulated components of the entire NES (the CPU, PPU, APU, Controllers, and Memory Mapper for the

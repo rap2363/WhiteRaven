@@ -1,6 +1,6 @@
-package main.java.web.transport;
+package web.transport;
 
-import main.java.operations.Utilities;
+import operations.Utilities;
 
 /**
  * Encapsulates the button presses/releases that are sent from the client to the server during gameplay.

@@ -1,4 +1,4 @@
-package main.java.io;
+package io;
 
 /**
  * An interface to interact with user inputs. Usually used in conjunction with a Joypad to connect a user's input to

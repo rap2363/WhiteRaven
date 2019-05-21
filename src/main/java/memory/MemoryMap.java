@@ -1,4 +1,4 @@
-package main.java.memory;
+package memory;
 
 /**
  * This abstract class can read/write to contiguous blocks of main.java.memory.

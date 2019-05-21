@@ -1,4 +1,4 @@
-package main.java.io;
+package io;
 
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;

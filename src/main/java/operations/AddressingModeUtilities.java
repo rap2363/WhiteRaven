@@ -1,6 +1,6 @@
-package main.java.operations;
+package operations;
 
-import main.java.nes.CPU;
+import nes.CPU;
 
 /**
  * Stateless utilities class that is used in conjunction with Operations to

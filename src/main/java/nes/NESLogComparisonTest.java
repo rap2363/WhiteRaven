@@ -1,6 +1,6 @@
-package main.java.nes;
+package nes;
 
-import main.java.io.KeyboardController;
+import io.KeyboardController;
 
 import java.io.BufferedReader;
 import java.io.File;

@@ -1,6 +1,6 @@
-package main.java.memory;
+package memory;
 
-import main.java.nes.MirroringMode;
+import nes.MirroringMode;
 
 /**
  * This is the main Video RAM of the PPU where the sprites and background images are held. The first 0x2000 bytes
@@ -16,7 +16,8 @@ public class VRAM extends MemoryMap {
     private NameTableMemory nameTableMemory = new NameTableMemory();
     private PaletteMemory paletteMemory = new PaletteMemory();
 
-    public VRAM() {}
+    public VRAM() {
+    }
 
     @Override
     public byte read(int address) {
@@ -83,7 +84,7 @@ class NameTableMemory extends MemoryMap {
         // Map the $2000 and $2800 to the first physical name table, and $2400 and $2C00 to the second
         else if (mirroringMode == MirroringMode.VERTICAL) {
             address %= 0x800;
-        // Map $2000, $2400, $2800, and $2C00 all to the same name table
+            // Map $2000, $2400, $2800, and $2C00 all to the same name table
         } else if (mirroringMode == MirroringMode.SINGLE) {
             address %= 0x400;
         }

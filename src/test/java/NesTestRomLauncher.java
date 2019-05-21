@@ -1,6 +1,6 @@
 package test.java;
 
-import main.java.io.KeyboardController;
+import io.KeyboardController;
 
 /**
  * Starts the Emulator with a path to a test rom to load in. Reads the status from $6000.

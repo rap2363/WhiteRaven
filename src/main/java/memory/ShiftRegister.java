@@ -1,4 +1,4 @@
-package main.java.memory;
+package memory;
 
 /**
  * This class stores two eight-pixel tile rows to render.

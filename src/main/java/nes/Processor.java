@@ -1,4 +1,4 @@
-package main.java.nes;
+package nes;
 
 /**
  * Abstract representation of a processing unit (CPU, and PPU). A processor has a cycle count and can execute

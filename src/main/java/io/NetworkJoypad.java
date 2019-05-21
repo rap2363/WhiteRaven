@@ -1,6 +1,6 @@
-package main.java.io;
+package io;
 
-import main.java.web.transport.ButtonMessage;
+import web.transport.ButtonMessage;
 
 import java.io.IOException;
 import java.io.InputStream;

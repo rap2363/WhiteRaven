@@ -1,4 +1,4 @@
-package main.java.io;
+package io;
 
 /**
  * Captures the logic to read from an input controller
