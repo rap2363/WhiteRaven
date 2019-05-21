@@ -1,9 +1,10 @@
-package main.java.screen;
+package screen;
 
-import main.java.io.KeyboardController;
-
+import io.KeyboardController;
 import java.util.Timer;
 import java.util.TimerTask;
+import nes.Console;
+import nes.Interrupt;
 
 /**
  * Starts the Emulator with a path to a game to load in.
@@ -17,10 +18,10 @@ public class WhiteRavenLauncher {
             System.exit(1);
         }
         final String pathToGame = args[0];
-        final main.java.nes.Console console = new main.java.nes.Console.Builder()
-                                        .setCartridgePath(pathToGame)
-                                        .setJoypadOne(new KeyboardController())
-                                        .build();
+        final Console console = new Console.Builder()
+            .setCartridgePath(pathToGame)
+            .setJoypadOne(new KeyboardController())
+            .build();
         final MainScreen screen = new MainScreen();
         final Timer timer = new Timer();
         int FRAME_TIME = 17;
@@ -31,7 +32,7 @@ public class WhiteRavenLauncher {
                     console.ppu.executeCycles(3);
                     console.cpu.executeCycle();
                     if (console.ppu.triggerVerticalBlank) {
-                        console.cpu.triggerInterrupt(main.java.nes.Interrupt.NMI);
+                        console.cpu.triggerInterrupt(Interrupt.NMI);
                         console.ppu.triggerVerticalBlank = false;
                         int[] image = console.ppu.getImage();
                         screen.push(image);

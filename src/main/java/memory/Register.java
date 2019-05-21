@@ -1,4 +1,4 @@
-package main.java.memory;
+package memory;
 
 interface Register {
 

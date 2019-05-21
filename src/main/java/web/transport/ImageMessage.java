@@ -1,4 +1,4 @@
-package main.java.web.transport;
+package web.transport;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -9,13 +9,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import javax.imageio.ImageIO;
+import nes.PPU;
 
 /**
  * Encapsulates a png image we send over the wire from the WhiteRavenServer to each client. This is reconstructed
  */
 public class ImageMessage implements ByteSerializable {
-    private static final int SCREEN_WIDTH = main.java.nes.PPU.SCREEN_WIDTH;
-    private static final int SCREEN_HEIGHT = main.java.nes.PPU.SCREEN_HEIGHT;
+    private static final int SCREEN_WIDTH = PPU.SCREEN_WIDTH;
+    private static final int SCREEN_HEIGHT = PPU.SCREEN_HEIGHT;
     private static final int INT_SIZE = 4;
     private byte[] imageMessageSize;
     private byte[] imageMessage;
@@ -67,7 +68,9 @@ public class ImageMessage implements ByteSerializable {
         final byte[] imageAr = new byte[size];
 
         // Wait until we've received all bytes required for an image
-        while (inputStream.available() < size);
+        while (inputStream.available() < size) {
+            ;
+        }
 
         inputStream.read(imageAr);
         final BufferedImage im = ImageIO.read(new ByteArrayInputStream(imageAr));

@@ -1,6 +1,6 @@
-package main.java.operations;
+package operations;
 
-import main.java.nes.CPU;
+import nes.CPU;
 
 public abstract class Branch extends Operation {
     public Branch(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {

@@ -1,6 +1,6 @@
-package main.java.nes;
+package nes;
 
-import main.java.memory.MemoryMap;
+import memory.MemoryMap;
 
 /**
  * Represents a no-op mapper. This Mapper is instantiated for games with no mapper implementation on the cartridge,

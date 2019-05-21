@@ -1,4 +1,4 @@
-package main.java.nes;
+package nes;
 
 public class UnimplementedOpcode extends Exception {
 

@@ -1,6 +1,6 @@
-package main.java.memory;
+package memory;
 
-import main.java.operations.Utilities;
+import operations.Utilities;
 
 public class SixteenBitRegister implements Register {
     private static final int MAX_SIXTEEN_BIT_VALUE = 0xFFFF;

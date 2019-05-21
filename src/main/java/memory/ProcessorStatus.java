@@ -1,4 +1,4 @@
-package main.java.memory;
+package memory;
 
 public class ProcessorStatus extends EightBitRegister {
 

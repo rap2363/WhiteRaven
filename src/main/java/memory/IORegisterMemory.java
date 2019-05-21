@@ -1,7 +1,7 @@
-package main.java.memory;
+package memory;
 
 
-import main.java.operations.Utilities;
+import operations.Utilities;
 
 public class IORegisterMemory extends MemoryMap {
     private static final int numPpuRegisters = 0x0008;

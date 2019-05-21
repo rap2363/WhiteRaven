@@ -1,6 +1,6 @@
-package main.java.memory;
+package memory;
 
-import main.java.operations.Utilities;
+import operations.Utilities;
 
 /**
  * The PPU also has a separate location of main.java.memory specifically for SPR-RAM which is distinct from main main.java.memory.
@@ -46,12 +46,12 @@ public class SPRAM extends MemoryMap {
 
             if (Utilities.inRange(lineNumber, y, y + 7)) {
                 buffer[numSprites++] = new Sprite.Builder()
-                                        .setX(x)
-                                        .setY(y)
-                                        .setPriority(i / 4)
-                                        .setAttributes(attributes)
-                                        .setPatternTableIndex(tileIndex)
-                                        .build();
+                    .setX(x)
+                    .setY(y)
+                    .setPriority(i / 4)
+                    .setAttributes(attributes)
+                    .setPatternTableIndex(tileIndex)
+                    .build();
             }
         }
         return numSprites == buffer.length;

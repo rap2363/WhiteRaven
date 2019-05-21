@@ -1,4 +1,4 @@
-package main.java.screen;
+package screen;
 
 import java.awt.BorderLayout;
 import java.awt.Graphics;
@@ -6,14 +6,14 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import nes.PPU;
 
 /**
  * Class to encompass drawing/refreshing the main main.java.screen.
  */
-final public class MainScreen
-{
-    private static final int SCREEN_WIDTH = main.java.nes.PPU.SCREEN_WIDTH;
-    private static final int SCREEN_HEIGHT = main.java.nes.PPU.SCREEN_HEIGHT;
+final public class MainScreen {
+    private static final int SCREEN_WIDTH = PPU.SCREEN_WIDTH;
+    private static final int SCREEN_HEIGHT = PPU.SCREEN_HEIGHT;
 
     private final WhiteRavenPanel panel;
     private final JFrame frame;
@@ -57,11 +57,10 @@ final public class MainScreen
         public WhiteRavenPanel() {
             super();
             screenImage = new BufferedImage(SCREEN_WIDTH, SCREEN_HEIGHT, BufferedImage.TYPE_INT_RGB);
-            imgData = ((DataBufferInt)screenImage.getRaster().getDataBuffer()).getData();
+            imgData = ((DataBufferInt) screenImage.getRaster().getDataBuffer()).getData();
         }
 
-        public void paintComponent(Graphics g)
-        {
+        public void paintComponent(Graphics g) {
             g.drawImage(this.screenImage, 0, 0, this.getWidth(), this.getHeight(), null);
         }
 

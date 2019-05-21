@@ -1,6 +1,6 @@
-package main.java.operations;
+package operations;
 
-import main.java.nes.CPU;
+import nes.CPU;
 
 class BranchIfOverflowSetRelative extends Branch {
     public BranchIfOverflowSetRelative(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {

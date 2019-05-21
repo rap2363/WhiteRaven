@@ -1,6 +1,6 @@
-package main.java.operations;
+package operations;
 
-import main.java.nes.CPU;
+import nes.CPU;
 
 public abstract class BooleanLogicOperation extends Operation {
     BooleanLogicOperation(AddressingMode addressingMode, byte opcode, int numBytes, int cycles) {

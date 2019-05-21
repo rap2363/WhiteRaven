@@ -1,11 +1,19 @@
-package main.java.web;
+package web;
 
-import main.java.io.NetworkJoypad;
-import main.java.web.transport.ImageMessage;
-
+import io.NetworkJoypad;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import nes.Console;
+import nes.Interrupt;
+import screen.WhiteRavenLauncher;
+import web.transport.ImageMessage;
 
 /**
  * Launches a WhiteRaven server application that can open connections to clients (players).
@@ -14,7 +22,6 @@ public class WhiteRavenServer {
     private static final int SERVER_PORT = 8888;
     static final int FRAMES_PER_SECOND = 60;
     static final int FRAME_TIME = 17;
-    private static main.java.nes.Console console;
 
     public static void main(String[] args) throws Exception {
         ServerSocket connectionListener = new ServerSocket(SERVER_PORT);
@@ -25,8 +32,9 @@ public class WhiteRavenServer {
         }
 
         final String pathToGame = args[0];
-        console = new main.java.nes.Console.Builder()
-                .setCartridgePath(pathToGame).build();
+        final Console console = new Console.Builder()
+            .setCartridgePath(pathToGame)
+            .build();
         final Timer timer = new Timer();
         final Map<ClientType, List<WhiteRavenPlayer>> players = new HashMap<>();
         // Initialize the map
@@ -37,16 +45,16 @@ public class WhiteRavenServer {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                for (int i = 0; i < main.java.screen.WhiteRavenLauncher.CPU_CYCLES_PER_SECOND / FRAMES_PER_SECOND; i++) {
+                for (int i = 0; i < WhiteRavenLauncher.CPU_CYCLES_PER_SECOND / FRAMES_PER_SECOND; i++) {
                     console.ppu.executeCycles(3);
                     console.cpu.executeCycle();
                     if (console.ppu.triggerVerticalBlank) {
-                        console.cpu.triggerInterrupt(main.java.nes.Interrupt.NMI);
+                        console.cpu.triggerInterrupt(Interrupt.NMI);
                         console.ppu.triggerVerticalBlank = false;
                         int[] image = console.ppu.getImage();
                         final ImageMessage imageMessage = new ImageMessage(image);
                         for (final List<WhiteRavenPlayer> playerList : players.values()) {
-                            for (final Iterator<WhiteRavenPlayer> playerIter = playerList.iterator(); playerIter.hasNext();) {
+                            for (final Iterator<WhiteRavenPlayer> playerIter = playerList.iterator(); playerIter.hasNext(); ) {
                                 final WhiteRavenPlayer player = playerIter.next();
                                 if (player.alive()) {
                                     player.sendImage(imageMessage.serialize());
@@ -66,7 +74,7 @@ public class WhiteRavenServer {
             while (true) {
                 // Blocks until we have a new connection
                 final Socket clientSocket = connectionListener.accept();
-                handleNewClient(clientSocket, players);
+                handleNewClient(console, clientSocket, players);
             }
         } finally {
             connectionListener.close();
@@ -80,8 +88,9 @@ public class WhiteRavenServer {
      * @param playerMap
      */
     private static void handleNewClient(
-            final Socket clientSocket,
-            final Map<ClientType, List<WhiteRavenPlayer>> playerMap) {
+        final Console console,
+        final Socket clientSocket,
+        final Map<ClientType, List<WhiteRavenPlayer>> playerMap) {
         final ClientType clientType;
 
         if (playerMap.get(ClientType.FIRST_PLAYER).size() == 0) {
@@ -95,9 +104,9 @@ public class WhiteRavenServer {
         }
 
         final WhiteRavenPlayer player = new WhiteRavenPlayer.Builder()
-                                            .setClientType(clientType)
-                                            .setSocket(clientSocket)
-                                            .build();
+            .setClientType(clientType)
+            .setSocket(clientSocket)
+            .build();
 
         playerMap.get(clientType).add(player);
 

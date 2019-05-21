@@ -1,4 +1,4 @@
-package main.java.nes;
+package nes;
 
 import java.io.IOException;
 import java.nio.file.Files;

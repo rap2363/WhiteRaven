@@ -1,6 +1,6 @@
-package main.java.operations;
+package operations;
 
-import main.java.nes.CPU;
+import nes.CPU;
 
 abstract class CompareXOperationBase extends Operation {
 

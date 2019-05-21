@@ -1,4 +1,4 @@
-package main.java.nes;
+package nes;
 
 /**
  * Represents the various mirroring modes allowed

@@ -1,4 +1,4 @@
-package main.java.nes;
+package nes;
 
 /**
  * These interrupts are ordered by priority

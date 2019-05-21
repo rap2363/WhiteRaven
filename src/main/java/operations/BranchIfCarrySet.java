@@ -1,6 +1,6 @@
-package main.java.operations;
+package operations;
 
-import main.java.nes.CPU;
+import nes.CPU;
 
 class BranchIfCarrySetRelative extends Branch {
     public BranchIfCarrySetRelative(AddressingMode addressMode, byte opcode, int numBytes, int cycles) {

@@ -8,7 +8,7 @@ task WhiteRavenLauncher(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'White Raven Launcher',
                 'Implementation-Version': version,
-                'Main-Class': 'main.java.screen.WhiteRavenLauncher'
+                'Main-Class': 'screen.WhiteRavenLauncher'
     }
     baseName = 'WhiteRavenLauncher'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
@@ -19,7 +19,7 @@ task WhiteRavenClient(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'White Raven Client',
                 'Implementation-Version': version,
-                'Main-Class': 'main.java.web.WhiteRavenClient'
+                'Main-Class': 'web.WhiteRavenClient'
     }
     baseName = 'WhiteRavenClient'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
@@ -30,7 +30,7 @@ task WhiteRavenServer(type: Jar) {
     manifest {
         attributes 'Implementation-Title': 'White Raven Server',
                 'Implementation-Version': version,
-                'Main-Class': 'main.java.web.WhiteRavenServer'
+                'Main-Class': 'web.WhiteRavenServer'
     }
     baseName = 'WhiteRavenServer'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }

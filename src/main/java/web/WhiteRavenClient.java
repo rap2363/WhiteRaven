@@ -1,15 +1,14 @@
-package main.java.web;
+package web;
 
-import main.java.io.ClientKeyboardController;
-import main.java.io.Controller;
-import main.java.screen.MainScreen;
-import main.java.web.transport.ImageMessage;
-
+import io.ClientKeyboardController;
+import io.Controller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import screen.MainScreen;
+import web.transport.ImageMessage;
 
 /**
  * This is run on clients connecting to a WhiteRavenServer instance over the network.
@@ -32,7 +31,7 @@ public class WhiteRavenClient {
         final InputStream inputStream = socket.getInputStream();
 
         // Listen indefinitely for image data to render
-        for (;;) {
+        for (; ; ) {
             final int[] imageData = ImageMessage.deserialize(inputStream);
             screen.push(imageData);
             screen.redraw();

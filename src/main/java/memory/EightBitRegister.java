@@ -1,6 +1,6 @@
-package main.java.memory;
+package memory;
 
-import main.java.operations.Utilities;
+import operations.Utilities;
 
 public class EightBitRegister implements Register {
     protected byte data;

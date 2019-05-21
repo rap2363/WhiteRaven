@@ -1,4 +1,4 @@
-package main.java.operations;
+package operations;
 
 import java.util.LinkedList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package main.java.operations;
+package operations;
 
 public class UnimplementedAddressingMode extends Exception {
     public UnimplementedAddressingMode() {
