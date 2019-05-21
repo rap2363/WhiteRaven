@@ -1,6 +1,5 @@
 package io;
 
-import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
 
@@ -13,14 +12,14 @@ public class KeyboardController implements Joypad, Controller {
 
     private boolean[] buttonsPressed = new boolean[8];
     private static final int[] buttonMappings = {
-            KeyEvent.VK_A,      // A
-            KeyEvent.VK_Z,      // B
-            KeyEvent.VK_SHIFT,  // SELECT
-            KeyEvent.VK_ENTER,  // START
-            KeyEvent.VK_UP,     // UP
-            KeyEvent.VK_DOWN,   // DOWN
-            KeyEvent.VK_LEFT,   // LEFT
-            KeyEvent.VK_RIGHT   // RIGHT
+        KeyEvent.VK_A,      // A
+        KeyEvent.VK_Z,      // B
+        KeyEvent.VK_SHIFT,  // SELECT
+        KeyEvent.VK_ENTER,  // START
+        KeyEvent.VK_UP,     // UP
+        KeyEvent.VK_DOWN,   // DOWN
+        KeyEvent.VK_LEFT,   // LEFT
+        KeyEvent.VK_RIGHT   // RIGHT
     };
 
     public KeyboardController() {
@@ -61,23 +60,18 @@ public class KeyboardController implements Joypad, Controller {
      */
     @Override
     public void initializeListener() {
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
-            @Override
-            public boolean dispatchKeyEvent(KeyEvent ke) {
-                synchronized (KeyboardController.class) {
-                    for (int i = 0; i < buttonMappings.length; i++) {
-                        if (buttonMappings[i] == ke.getKeyCode()) {
-                            if (ke.getID() == KeyEvent.KEY_PRESSED) {
-                                buttonsPressed[i] = true;
-                            } else if (ke.getID() == KeyEvent.KEY_RELEASED) {
-                                buttonsPressed[i] = false;
-                            }
-                            break;
-                        }
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(keyEvent -> {
+            for (int i = 0; i < buttonMappings.length; i++) {
+                if (buttonMappings[i] == keyEvent.getKeyCode()) {
+                    if (keyEvent.getID() == KeyEvent.KEY_PRESSED) {
+                        buttonsPressed[i] = true;
+                    } else if (keyEvent.getID() == KeyEvent.KEY_RELEASED) {
+                        buttonsPressed[i] = false;
                     }
-                    return false;
+                    break;
                 }
             }
+            return false;
         });
     }
 }
