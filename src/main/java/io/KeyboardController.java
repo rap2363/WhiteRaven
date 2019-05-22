@@ -2,6 +2,8 @@ package io;
 
 import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A hard-coded keyboard controller with fixed button mappings
@@ -10,9 +12,8 @@ public class KeyboardController implements Joypad, Controller {
     private int currentButton;
     private boolean strobe;
 
-    private boolean[] buttonsPressed = new boolean[8];
     private static final int[] buttonMappings = {
-        KeyEvent.VK_A,      // A
+        KeyEvent.VK_R,      // A
         KeyEvent.VK_Z,      // B
         KeyEvent.VK_SHIFT,  // SELECT
         KeyEvent.VK_ENTER,  // START
@@ -22,14 +23,21 @@ public class KeyboardController implements Joypad, Controller {
         KeyEvent.VK_RIGHT   // RIGHT
     };
 
-    public KeyboardController() {
-        reset();
-        initializeListener();
-    }
+    private final Map<Integer, Boolean> buttonsPressedMap;
 
-    private void reset() {
+    public KeyboardController() {
         currentButton = 0;
         strobe = false;
+        buttonsPressedMap = new HashMap<>();
+        buttonsPressedMap.put(KeyEvent.VK_R, false);
+        buttonsPressedMap.put(KeyEvent.VK_Z, false);
+        buttonsPressedMap.put(KeyEvent.VK_SHIFT, false);
+        buttonsPressedMap.put(KeyEvent.VK_ENTER, false);
+        buttonsPressedMap.put(KeyEvent.VK_UP, false);
+        buttonsPressedMap.put(KeyEvent.VK_DOWN, false);
+        buttonsPressedMap.put(KeyEvent.VK_LEFT, false);
+        buttonsPressedMap.put(KeyEvent.VK_RIGHT, false);
+        initializeListener();
     }
 
     @Override
@@ -47,7 +55,7 @@ public class KeyboardController implements Joypad, Controller {
      * @return
      */
     private synchronized byte getButton() {
-        return (byte) (buttonsPressed[currentButton] ? 0x41 : 0x40);
+        return (byte) (buttonsPressedMap.get(buttonMappings[currentButton]) ? 0x41 : 0x40);
     }
 
     @Override
@@ -61,17 +69,13 @@ public class KeyboardController implements Joypad, Controller {
     @Override
     public void initializeListener() {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(keyEvent -> {
-            for (int i = 0; i < buttonMappings.length; i++) {
-                if (buttonMappings[i] == keyEvent.getKeyCode()) {
-                    if (keyEvent.getID() == KeyEvent.KEY_PRESSED) {
-                        buttonsPressed[i] = true;
-                    } else if (keyEvent.getID() == KeyEvent.KEY_RELEASED) {
-                        buttonsPressed[i] = false;
-                    }
-                    break;
-                }
+            if (!buttonsPressedMap.containsKey(keyEvent.getKeyCode())) {
+                return true;
             }
-            return false;
+            if (keyEvent.getID() == KeyEvent.KEY_PRESSED || keyEvent.getID() == KeyEvent.KEY_RELEASED) {
+                buttonsPressedMap.put(keyEvent.getKeyCode(), (keyEvent.getID() == KeyEvent.KEY_PRESSED));
+            }
+            return true;
         });
     }
 }
